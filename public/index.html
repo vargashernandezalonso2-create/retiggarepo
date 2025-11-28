@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmacias tere - Tu bienestar, nuestra prioridad</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .btn-doctor {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            color: white !important;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .btn-doctor:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+            background: linear-gradient(135deg, #059669, #047857) !important;
+        }
+
+        #doctor-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #doctor-modal.active {
+            opacity: 1;
+        }
+
+        .doctor-container {
+            width: 90%;
+            max-width: 900px;
+            height: 90vh;
+            max-height: 800px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.9);
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        #doctor-modal.active .doctor-container {
+            transform: scale(1);
+        }
+
+        .doctor-header {
+            background: linear-gradient(135deg, #0056b3, #003d82);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .doctor-header-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .doctor-progress {
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e2e8f0;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 3px;
+            background: #0056b3;
+            transform: translateY(-50%);
+            transition: width 0.5s ease;
+            z-index: 1;
+            width: 0%;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #64748b;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            border-color: #0056b3;
+            background: #0056b3;
+            color: white;
+            transform: scale(1.2);
+        }
+
+        .step.completed {
+            border-color: #10b981;
+            background: #10b981;
+            color: white;
+        }
+
+        .doctor-chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        .doctor-input {
+            padding: 1.5rem;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .doctor-input.hidden {
+            display: none;
+        }
+
+        .doctor-consent {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .consent-content {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .consent-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .doctor-message {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .doctor-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #0056b3, #003d82);
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .doctor-message-content {
+            background: white;
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            max-width: 70%;
+        }
+
+        .doctor-options {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .doctor-option-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .doctor-option-btn:hover:not(.disabled) {
+            border-color: #0056b3;
+            background: #f8fafc;
+            transform: translateX(5px);
+        }
+
+        .promo-bar {
+            background: #0056b3;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1000;
+            overflow: hidden; /* Added for scrolling effect */
+        }
+        
+        .promo-content {
+            display: inline-block; /* Essential for text scrolling */
+            white-space: nowrap; /* Keep text on single line */
+            padding-left: 100%; /* Start off-screen */
+            animation: mover-texto 40s linear infinite; /* Adjusted speed */
+        }
+
+        @keyframes mover-texto {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-100%); } /* Scrolls the text fully across */
+        }
+
+        @media (max-width: 768px) {
+            .btn-doctor {
+                font-size: 0.85rem;
+                padding: 0.6rem 1rem;
+            }
+            
+            .doctor-container {
+                width: 100%;
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+            }
+        }
+
+        /* Map and Contact Section */
+        .location-section {
+            padding: 4rem 0;
+            background: #f9f9f9;
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        .map-wrapper {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .contact-item .icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .contact-item .details {
+            line-height: 1.4;
+        }
+
+        .contact-item .details strong {
+            display: block;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            color: white !important;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            display: inline-block;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669, #047857) !important;
+        }
+/* --- CORRECCIÓN DEL CHAT DEL DOCTOR --- */
+#doctorInputArea .btn {
+    width: auto !important; /* Que el botón no ocupe todo el espacio */
+    flex-shrink: 0; /* Que no se haga pequeño */
+}
+
+#doctorInput {
+    color: #000000 !important; /* Texto negro forzoso */
+    background-color: #ffffff !important; /* Fondo blanco */
+    min-width: 0; /* Evita que se colapse */
+}
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+</head>
+<body>
+
+    <div class="promo-bar">
+        <div class="promo-content">
+            📢 <b>¡OFERTA ESPECIAL!</b> Envíos GRATIS en toda la CDMX en compras mayores a $200 🚚 — 
+            💊 20% de descuento en medicamentos genéricos — 
+            🤖 <b>¡Prueba nuestro nuevo Asistente Virtual!</b> Resuelve tus dudas al instante — 
+            🧴 3x2 en productos de higiene personal — 
+            ⚡ Entregas en menos de 2 horas — 
+            💳 Meses sin intereses en tarjetas participantes
+        </div>
+    </div>
+    <header id="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚕️</span>
+                <span>Farmacias tere</span>
+            </a>
+            <nav>
+                <div class="nav-links">
+                    <a href="#productos">Productos</a>
+                    <a href="#nosotros">Nosotros</a>
+                    <button class="btn btn-doctor" id="btn-doctor-virtual">
+                        <span></span>
+                        <span>Asistente Virtual</span>
+                    </button>
+                </div>
+                <div class="nav-auth" id="nav-auth">
+                    <button class="btn btn-link" id="btn-show-login">Ingresar</button>
+                    <button class="btn btn-primary" id="btn-show-register">Registrarse</button>
+                </div>
+                <div class="user-info" id="user-info" style="display: none;">
+                    <span id="user-name"></span>
+                    <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
+                </div>
+                <button class="cart-button" id="btn-show-cart" aria-label="Ver carrito">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="cart-count" id="cart-count-bubble">0</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero-main">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="animate-fadeInUp">Tu bienestar, nuestra prioridad.</h1>
+                <p class="animate-fadeInUp delay-1">Encuentra todos tus medicamentos y productos de cuidado personal en un solo lugar. Rápido, seguro y confiable.</p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="#productos" class="btn btn-primary btn-lg animate-fadeInUp delay-2">
+                        <span>Explorar Productos</span>
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <button class="btn btn-lg animate-fadeInUp delay-3" id="btn-doctor-hero" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+                        <span>🩺</span>
+                        <span>Consultar Asistente</span>
+                    </button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="/resources/hero-farmacia.png" alt="Farmacias tere" class="animate-fadeInUp delay-3" onerror="this.src='https://placehold.co/500x400/0056b3/FFFFFF/png?text=Farmacia+BHR'">
+            </div>
+        </div>
+    </section>
+
+    <section class="product-section" id="productos">
+        <div class="container">
+            <h2 class="animate-fadeInUp">Medicamentos Populares</h2>
+            <div class="product-grid" id="lista-productos">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="nosotros">
+        <div class="container">
+            <h2 class="section-title animate-fadeInUp">¿Por qué elegir Farmacias tere?</h2>
+            <div class="features-grid">
+                <div class="card animate-fadeInUp delay-1">
+                    <div class="card-header">
+                        <svg class="icon" style="width: 48px; height: 48px; color: var(--primary-color);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Productos Certificados</h3>
+                        <p>Todos nuestros medicamentos están aprobados por COFEPRIS y garantizamos su autenticidad.</p>
+                    </div>
+                </div>
+
+                <div class="card animate-fadeInUp delay-2">
+                    <div class="card-header">
+                        <svg class="icon" style="width: 48px; height: 48px; color: var(--primary-color);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Entrega Rápida</h3>
+                        <p>Recibe tus productos en menos de 24 horas en la Ciudad de México y área metropolitana.</p>
+                    </div>
+                </div>
+
+                <div class="card animate-fadeInUp delay-3">
+                    <div class="card-header">
+                        <svg class="icon" style="width: 48px; height: 48px; color: var(--primary-color);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Atención Personalizada</h3>
+                        <p>Nuestro equipo de farmacéuticos está disponible para orientarte en tu compra.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+                <button class="modal-close-btn" id="btn-close-login" aria-label="Cerrar">&times;</button>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email" class="form-label">Email</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password" class="form-label">Contraseña</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="error-message" id="login-error"></div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Iniciar Sesión</span>
+                </button>
+            </form>
+            <div class="modal-switch">
+                ¿No tienes cuenta? <a id="switch-to-register">Regístrate</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="register-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Registrarse</h2>
+                <button class="modal-close-btn" id="btn-close-register" aria-label="Cerrar">&times;</button>
+            </div>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-nombre" class="form-label">Nombre Completo</label>
+                    <input type="text" id="register-nombre" class="form-control" placeholder="Juan Pérez" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email" class="form-label">Email</label>
+                    <input type="email" id="register-email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password" class="form-label">Contraseña</label>
+                    <input type="password" id="register-password" class="form-control" placeholder="Mínimo 6 caracteres" required minlength="6">
+                    <span class="form-help">Usa al menos 6 caracteres</span>
+                </div>
+                <div class="error-message" id="register-error"></div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Crear Cuenta</span>
+                </button>
+            </form>
+            <div class="modal-switch">
+                ¿Ya tienes cuenta? <a id="switch-to-login">Inicia Sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="side-cart-overlay" id="side-cart-overlay">
+        <div class="side-cart" id="side-cart">
+            <div class="cart-header">
+                <h2>Mi Carrito</h2>
+                <button class="cart-close-btn" id="btn-close-cart" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="cart-body" id="cart-body">
+                <p class="cart-empty">Tu carrito está vacío.</p>
+            </div>
+            <div class="cart-footer" id="cart-footer" style="display: none;">
+                <div class="cart-subtotal">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <form class="checkout-form" id="checkout-form">
+                    <div class="form-group">
+                        <label for="direccionEnvio" class="form-label">Dirección de Envío:</label>
+                        <input type="text" id="direccionEnvio" class="form-control" placeholder="Calle, número, colonia" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Método de Pago:</label>
+                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="radio" name="metodoPago" value="tarjeta" id="pay-tarjeta" checked>
+                                <span>Tarjeta</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="radio" name="metodoPago" value="efectivo" id="pay-efectivo">
+                                <span>Efectivo</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="error-message" id="checkout-error"></div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btn-checkout">
+                        <span>Confirmar Pedido</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="doctor-modal">
+        <div class="doctor-container">
+            <div class="doctor-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="doctor-header-icon">⚕️</div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.5rem;">Asistente Virtual Farmacias tere</h2>
+                        <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Tu asistente de salud personalizado</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="btn-close-doctor" aria-label="Cerrar" style="background: rgba(255,255,255,0.2); color: white; border: none; font-size: 2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">&times;</button>
+            </div>
+
+            <div class="doctor-progress">
+                <div class="progress-steps">
+                    <div class="progress-line" id="progressLine"></div>
+                    <div class="step active" id="step1">1</div>
+                    <div class="step" id="step2">2</div>
+                    <div class="step" id="step3">3</div>
+                </div>
+            </div>
+
+            <div class="doctor-chat" id="doctorChat">
+            </div>
+
+            <div class="doctor-input hidden" id="doctorInputArea">
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" class="form-control" id="doctorInput" placeholder="Escribe tu respuesta..." style="flex: 1;">
+                    <button class="btn btn-primary" id="doctorSendBtn">
+                        <span>Enviar</span>
+                        <span>📤</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="role-modal" style="z-index: 9999; display: none;">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div id="purchase-alert" style="background: #fff3cd; color: #856404; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: none; border: 1px solid #ffeeba;">
+                ⚠️ Para continuar con la compra necesitas iniciar sesión o registrarte.
+            </div>
+            <div id="role-step-1">
+                <h2 style="margin-bottom: 2rem; color: var(--primary-color);">¿Cómo deseas iniciar sesión?</h2>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <button class="btn btn-primary" id="btn-role-admin" style="padding: 1.5rem; font-size: 1.2rem;">
+                        🛡️ Administrador
+                    </button>
+                    <button class="btn btn-secondary" id="btn-role-client" style="padding: 1.5rem; font-size: 1.2rem;">
+                        👤 Cliente
+                    </button>
+                </div>
+            </div>
+
+            <div id="role-step-admin" style="display: none;">
+                <h3 style="margin-bottom: 1rem;">Acceso Administrativo</h3>
+                <div class="form-group">
+                    <input type="password" id="admin-key-input" class="form-control" placeholder="Ingresa la clave maestra" style="text-align: center; font-size: 1.2rem;">
+                </div>
+                <div id="admin-error" style="color: red; margin-bottom: 1rem; display: none;">Contraseña incorrecta. Intenta nuevamente.</div>
+                <button class="btn btn-primary btn-block" id="btn-verify-admin">Entrar</button>
+                <button class="btn btn-link" id="btn-back-role" style="margin-top: 1rem;">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="btn-accesibilidad" aria-label="Modo de Alto Contraste" data-tooltip="Modo Alto Contraste">
+        ♿
+    </button>
+
+    <section class="location-section" id="ubicacion">
+        <div class="container">
+            <div class="section-header text-center mb-lg">
+                <h2 class="section-title">Encuéntranos Aquí</h2>
+                <p>Ven a visitarnos en nuestra sucursal principal</p>
+            </div>
+
+            <div class="location-grid">
+                <div class="map-wrapper">
+                    <div id="map"></div>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-header">
+                        <h3>ℹ️ Contacto</h3>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="icon">📍</div>
+                        <div class="details">
+                            <strong>Dirección:</strong>
+                            <p>Av. San Pablo Xalpa<br>Col. Reynosa Tamaulipas, CDMX</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="icon">📞</div>
+                        <div class="details">
+                            <strong>Teléfono:</strong>
+                            <p>(55) 1234-5678</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="icon">⏰</div>
+                        <div class="details">
+                            <strong>Horario:</strong>
+                            <p>Lunes a Domingo<br>7:00 AM - 10:00 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="icon">✉️</div>
+                        <div class="details">
+                            <strong>Email:</strong>
+                            <p>contacto@farmaciastere.com</p>
+                        </div>
+                    </div>
+
+                    <a href="https://www.google.com/maps/search/?api=1&query=19.49274865160017,-99.186267" target="_blank" class="btn btn-primary btn-block mt-md">
+                        📍 Cómo Llegar (Google Maps)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Farmacias tere. Todos los derechos reservados.</p>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#productos">Productos</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#">Contacto</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="app.js"></script>
+    <script src="yoshi-sprite.js"></script>
+    <script src="yoshi-integration.js"></script>
+    <script src="doctor-virtual.js"></script>
+    
+    <script>
+        let lastScroll = 0;
+        const header = document.getElementById('main-header');
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+            
+            lastScroll = currentScroll;
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-fadeInUp, .card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            observer.observe(el);
+        });
+
+        const productListObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.classList && node.classList.contains('product-card')) {
+                        node.style.opacity = '0';
+                        node.style.transform = 'translateY(30px)';
+                        node.style.transition = 'all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                        
+                        setTimeout(() => {
+                            node.style.opacity = '1';
+                            node.style.transform = 'translateY(0)';
+                        }, 100);
+                    }
+                });
+            });
+        });
+
+        const productList = document.getElementById('lista-productos');
+        if (productList) {
+            productListObserver.observe(productList, { childList: true });
+        }
+    </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- TUS COORDENADAS EXACTAS ---
+        const lat = 19.492698082099036; 
+        const lng = -99.18633218650845; 
+        
+        // 1. Inicializar el mapa
+        var map = L.map('map').setView([lat, lng], 16); // 16 es el nivel de zoom (puedes cambiarlo a 15 o 17)
+
+        // 2. Cargar el diseño del mapa (OpenStreetMap)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // 3. Agregar el marcador (pin) en tu ubicación
+        var marker = L.marker([lat, lng]).addTo(map);
+
+        // 4. Configurar el globito de información
+        marker.bindPopup("<b>Farmacias tere</b><br>Estamos aquí.").openPopup();
+        
+        // Opcional: Esto asegura que el mapa se dibuje bien si estaba oculto
+        setTimeout(function(){ map.invalidateSize()}, 400);
+    });
+</script>
+</body>
+</html>

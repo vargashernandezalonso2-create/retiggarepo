@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Virtual BHR - Tu Asistente de Salud</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --primary-dark: #003d82;
+            --primary-light: #3385d6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-color: #1e293b;
+            --text-light: #64748b;
+            --bg-color: #ffffff;
+            --bg-secondary: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.12);
+            --radius: 10px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            max-height: 800px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header-info h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-info p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--border-color);
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 3px;
+            background: var(--primary-color);
+            transform: translateY(-50%);
+            transition: width 0.5s ease;
+            z-index: 1;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-light);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.2);
+        }
+
+        .step.completed {
+            border-color: var(--success-color);
+            background: var(--success-color);
+            color: white;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: var(--bg-secondary);
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .consent-screen {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .consent-screen h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .consent-content {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .consent-content h3 {
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .consent-content ul {
+            margin-left: 1.5rem;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .consent-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            animation: messageSlide 0.4s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .avatar.doctor {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            animation: avatarBreathe 4s ease-in-out infinite;
+        }
+
+        @keyframes avatarBreathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .avatar.user {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            background: white;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+
+        .message-content p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .emergency-alert {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-lg);
+            animation: emergencyPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes emergencyPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { transform: scale(1.02); box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0); }
+        }
+
+        .emergency-alert h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .emergency-numbers {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            padding: 1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-color);
+            background: var(--bg-secondary);
+            transform: translateX(5px);
+        }
+
+        .option-btn .icon {
+            font-size: 1.5rem;
+        }
+
+        .scale-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .scale-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .scale-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--primary-color);
+        }
+
+        .scale-btn.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .result-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .result-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-card ul {
+            margin-left: 1.5rem;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .result-card .warning {
+            background: rgba(245, 158, 11, 0.1);
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-top: 1rem;
+            border-left: 4px solid var(--warning-color);
+            color: var(--text-color);
+        }
+
+        .sources {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .sources a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .sources a:hover {
+            text-decoration: underline;
+        }
+
+        .input-container {
+            padding: 1.5rem;
+            background: white;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.1);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .consent-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">⚕️</div>
+            <div class="header-info">
+                <h1>Doctor Yoshi</h1>
+                <p>Tu asistente de salud personalizado</p>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line" id="progressLine" style="width: 0%"></div>
+                <div class="step active" id="step1">1</div>
+                <div class="step" id="step2">2</div>
+                <div class="step" id="step3">3</div>
+            </div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            </div>
+
+        <div class="input-container hidden" id="inputContainer">
+            <div class="input-wrapper">
+                <input type="text" class="input-field" id="userInput" placeholder="Escribe tu respuesta...">
+                <button class="btn btn-primary" id="sendBtn">
+                    <span>Enviar</span>
+                    <span>📤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            currentStep: 1,
+            consent: false,
+            consentTimestamp: null,
+            userData: {
+                age: null,
+                pregnant: null,
+                allergies: [],
+                medications: [],
+                chronicConditions: [],
+                language: 'es'
+            },
+            symptoms: {
+                description: '',
+                duration: null,
+                severity: null,
+                sudden: null,
+                fever: null,
+                bleeding: null,
+                breathing: null
+            },
+            redFlags: false,
+            conversationHistory: []
+        };
+
+        const RED_FLAGS = [
+            'dificultad para respirar',
+            'dolor en el pecho',
+            'pérdida de consciencia',
+            'sangrado profuso',
+            'convulsiones',
+            'dolor de cabeza severo repentino',
+            'confusión severa',
+            'debilidad en un lado del cuerpo',
+            'dificultad para hablar',
+            'visión borrosa repentina'
+        ];
+
+        const chatContainer = document.getElementById('chatContainer');
+        const inputContainer = document.getElementById('inputContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function init() {
+            showConsentScreen();
+        }
+
+        function showConsentScreen() {
+            const consentHTML = `
+                <div class="consent-screen">
+                    <h2>⚠️ Aviso Legal y Consentimiento</h2>
+                    <div class="consent-content">
+                        <h3>Finalidad del Servicio</h3>
+                        <ul>
+                            <li>Este es un <strong>servicio de información general</strong> sobre salud</li>
+                            <li><strong>NO proporciona diagnósticos médicos definitivos</strong></li>
+                            <li>NO reemplaza la consulta con un profesional de la salud</li>
+                            <li>Está diseñado para orientación y triage inicial</li>
+                        </ul>
+                        
+                        <h3>Limitaciones</h3>
+                        <ul>
+                            <li>NO prescribe medicamentos controlados</li>
+                            <li>Solo sugiere categorías de medicamentos OTC con advertencias</li>
+                            <li>Puede recomendar atención médica urgente cuando sea necesario</li>
+                        </ul>
+                        
+                        <h3>Privacidad</h3>
+                        <ul>
+                            <li>Solo recopilamos datos mínimos necesarios</li>
+                            <li>Sus datos se manejan conforme a las leyes aplicables</li>
+                            <li>No compartimos su información sin consentimiento</li>
+                        </ul>
+                    </div>
+                    <div class="consent-actions">
+                        <button class="btn btn-primary" onclick="acceptConsent()">
+                            ✅ Acepto y Deseo Continuar
+                        </button>
+                        <button class="btn btn-secondary" onclick="declineConsent()">
+                            ❌ No Acepto
+                        </button>
+                    </div>
+                </div>
+            `;
+            chatContainer.innerHTML = consentHTML;
+            scrollToBottom();
+        }
+
+        function acceptConsent() {
+            state.consent = true;
+            state.consentTimestamp = new Date().toISOString();
+            updateProgress(1);
+            startConversation();
+        }
+
+        function declineConsent() {
+            const declineHTML = `
+                <div class="consent-screen">
+                    <h2>❌ Consentimiento No Otorgado</h2>
+                    <p style="color: var(--text-light); line-height: 1.8; margin: 1rem 0;">
+                        Entendemos su decisión. Sin su consentimiento no podemos proceder con la evaluación.
+                        Si tiene dudas médicas, le recomendamos contactar directamente a un profesional de la salud.
+                    </p>
+                    <div class="consent-actions">
+                        <button class="btn btn-primary" onclick="showConsentScreen()">
+                            🔄 Revisar Nuevamente
+                        </button>
+                    </div>
+                </div>
+            `;
+            chatContainer.innerHTML = declineHTML;
+            scrollToBottom();
+        }
+
+        async function startConversation() {
+            chatContainer.innerHTML = '';
+            await addDoctorMessage("¡Hola! Soy tu asistente virtual de salud. Estoy aquí para ayudarte con orientación sobre tu bienestar.JIJIJIJIJJA");
+            await delay(1000);
+            await addDoctorMessage("Para brindarte la mejor orientación, necesito hacerte algunas preguntas básicas.");
+            await delay(1000);
+            askAge();
+        }
+
+        function askAge() {
+            addDoctorMessage("¿Cuántos años tienes?");
+            showOptions([
+                { text: "Menor de 18 años", value: "minor" },
+                { text: "18-30 años", value: "18-30" },
+                { text: "31-50 años", value: "31-50" },
+                { text: "51-70 años", value: "51-70" },
+                { text: "Más de 70 años", value: "70+" }
+            ], handleAgeResponse);
+        }
+
+        function handleAgeResponse(value) {
+            state.userData.age = value;
+            addUserMessage(value);
+            
+            if (value === "minor") {
+                addDoctorMessage("Para menores de 18 años, recomendamos que un adulto esté presente durante la consulta. ¿Hay un adulto contigo?");
+                showOptions([
+                    { text: "Sí, hay un adulto presente", value: "yes" },
+                    { text: "No", value: "no" }
+                ], (response) => {
+                    addUserMessage(response === "yes" ? "Sí, hay un adulto presente" : "No");
+                    if (response === "no") {
+                        addDoctorMessage("Te recomendamos hablar con un adulto de confianza o acudir a un médico. Por ahora, no podemos continuar sin supervisión adulta.");
+                        return;
+                    }
+                    askPregnancy();
+                });
+            } else {
+                askPregnancy();
+            }
+        }
+
+        function askPregnancy() {
+            addDoctorMessage("¿Estás embarazada o en periodo de lactancia?");
+            showOptions([
+                { text: "Sí, embarazada", value: "pregnant" },
+                { text: "Sí, lactando", value: "lactating" },
+                { text: "No", value: "no" }
+            ], handlePregnancyResponse);
+        }
+
+        function handlePregnancyResponse(value) {
+            state.userData.pregnant = value;
+            addUserMessage(value === "pregnant" ? "Sí, embarazada" : value === "lactating" ? "Sí, lactando" : "No");
+            askAllergies();
+        }
+
+        function askAllergies() {
+            addDoctorMessage("¿Tienes alguna alergia conocida a medicamentos?");
+            showOptions([
+                { text: "No tengo alergias", value: "none" },
+                { text: "Sí, tengo alergias", value: "yes" }
+            ], handleAllergiesResponse);
+        }
+
+        function handleAllergiesResponse(value) {
+            addUserMessage(value === "none" ? "No tengo alergias" : "Sí, tengo alergias");
+            
+            if (value === "yes") {
+                addDoctorMessage("Por favor, escribe tus alergias separadas por comas:");
+                showTextInput((text) => {
+                    state.userData.allergies = text.split(',').map(a => a.trim());
+                    askCurrentMedications();
+                });
+            } else {
+                askCurrentMedications();
+            }
+        }
+
+        function askCurrentMedications() {
+            addDoctorMessage("¿Actualmente tomas algún medicamento de manera regular?");
+            showOptions([
+                { text: "No tomo medicamentos", value: "none" },
+                { text: "Sí, tomo medicamentos", value: "yes" }
+            ], handleMedicationsResponse);
+        }
+
+        function handleMedicationsResponse(value) {
+            addUserMessage(value === "none" ? "No tomo medicamentos" : "Sí, tomo medicamentos");
+            
+            if (value === "yes") {
+                addDoctorMessage("Por favor, escribe los medicamentos que tomas:");
+                showTextInput((text) => {
+                    state.userData.medications = text.split(',').map(m => m.trim());
+                    askChronicConditions();
+                });
+            } else {
+                askChronicConditions();
+            }
+        }
+
+        function askChronicConditions() {
+            addDoctorMessage("¿Tienes alguna condición de salud crónica? (diabetes, hipertensión, asma, etc.)");
+            showOptions([
+                { text: "No tengo condiciones crónicas", value: "none" },
+                { text: "Sí, tengo condiciones crónicas", value: "yes" }
+            ], handleChronicResponse);
+        }
+
+        async function handleChronicResponse(value) {
+            addUserMessage(value === "none" ? "No tengo condiciones crónicas" : "Sí, tengo condiciones crónicas");
+            
+            if (value === "yes") {
+                addDoctorMessage("Por favor, escribe tus condiciones de salud:");
+                showTextInput(async (text) => {
+                    state.userData.chronicConditions = text.split(',').map(c => c.trim());
+                    await completeBasicInfo();
+                });
+            } else {
+                await completeBasicInfo();
+            }
+        }
+
+        async function completeBasicInfo() {
+            updateProgress(2);
+            await addDoctorMessage("¡Perfecto! Gracias por compartir esta información. Ahora hablemos sobre cómo te sientes.");
+            await delay(1000);
+            askSymptomDescription();
+        }
+
+        function askSymptomDescription() {
+            addDoctorMessage("Por favor, descríbeme qué síntomas estás experimentando:");
+            showTextInput(async (text) => {
+                state.symptoms.description = text;
+                
+                const hasRedFlag = RED_FLAGS.some(flag => 
+                    text.toLowerCase().includes(flag)
+                );
+                
+                if (hasRedFlag) {
+                    state.redFlags = true;
+                    await showEmergencyAlert();
+                } else {
+                    askSymptomDuration();
+                }
+            });
+        }
+
+        async function showEmergencyAlert() {
+            const emergencyHTML = `
+                <div class="message">
+                    <div class="avatar doctor">⚕️</div>
+                    <div class="message-content" style="max-width: 100%;">
+                        <div class="emergency-alert">
+                            <h3>🚨 ATENCIÓN URGENTE NECESARIA</h3>
+                            <p style="font-size: 1.1rem; margin: 1rem 0;">
+                                Los síntomas que describes pueden ser signos de una condición grave que requiere atención médica inmediata.
+                            </p>
+                            <p style="font-size: 1rem; margin: 1rem 0;">
+                                <strong>Por favor, llama a emergencias AHORA o acude al hospital más cercano.</strong>
+                            </p>
+                            <div class="emergency-numbers">
+                                📞 Emergencias México: 911 O EL DE TU EX<br>
+                                🏥 Cruz Roja: 065<br>
+                                🚑 Ambulancia: 911
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', emergencyHTML);
+            scrollToBottom();
+            
+            await delay(2000);
+            await addDoctorMessage("No puedo continuar con la evaluación en este caso. Por favor, busca ayuda médica profesional inmediatamente. Tu salud es lo más importante. 🏥");
+            inputContainer.classList.add('hidden');
+        }
+
+        function askSymptomDuration() {
+            addDoctorMessage("¿Desde hace cuánto tiempo tienes estos síntomas?");
+            showOptions([
+                { text: "Menos de 24 horas", value: "<24h" },
+                { text: "1-3 días", value: "1-3d" },
+                { text: "4-7 días", value: "4-7d" },
+                { text: "Más de una semana", value: ">7d" }
+            ], handleDurationResponse);
+        }
+
+        function handleDurationResponse(value) {
+            state.symptoms.duration = value;
+            addUserMessage(value);
+            askSymptomSeverity();
+        }
+
+        function askSymptomSeverity() {
+            addDoctorMessage("En una escala del 1 al 10, ¿qué tan intenso es tu malestar? (1 = muy leve, 10 = insoportable)");
+            showScaleSelector(1, 10, handleSeverityResponse);
+        }
+
+        function handleSeverityResponse(value) {
+            state.symptoms.severity = value;
+            addUserMessage(`Nivel de intensidad: ${value}/10`);
+            askSuddenOnset();
+        }
+
+        function askSuddenOnset() {
+            addDoctorMessage("¿Los síntomas aparecieron de repente o gradualmente?");
+            showOptions([
+                { text: "De repente", value: "sudden" },
+                { text: "Gradualmente", value: "gradual" }
+            ], handleOnsetResponse);
+        }
+
+        function handleOnsetResponse(value) {
+            state.symptoms.sudden = value;
+            addUserMessage(value === "sudden" ? "De repente" : "Gradualmente");
+            askFever();
+        }
+
+        function askFever() {
+            addDoctorMessage("¿Tienes fiebre?");
+            showOptions([
+                { text: "Sí", value: "yes" },
+                { text: "No", value: "no" },
+                { text: "No estoy seguro/a", value: "unsure" }
+            ], handleFeverResponse);
+        }
+
+        function handleFeverResponse(value) {
+            state.symptoms.fever = value;
+            addUserMessage(value === "yes" ? "Sí" : value === "no" ? "No" : "No estoy seguro/a");
+            generateRecommendations();
+        }
+
+        async function generateRecommendations() {
+            updateProgress(3);
+            await addDoctorMessage("Gracias por responder todas las preguntas. Déjame analizar tu información...");
+            showTypingIndicator();
+            
+            await delay(3000);
+            hideTypingIndicator();
+            
+            const recommendation = determineRecommendation();
+            await showRecommendation(recommendation);
+        }
+
+        function determineRecommendation() {
+            const severity = state.symptoms.severity;
+            const duration = state.symptoms.duration;
+            
+            if (severity >= 8 || state.symptoms.sudden === "sudden" && severity >= 6) {
+                return {
+                    level: 'urgent',
+                    title: '🚨 Consulta Médica Urgente',
+                    message: 'Basándome en la intensidad de tus síntomas, te recomiendo buscar atención médica en las próximas horas.',
+                    actions: [
+                        'Acude a urgencias o consulta con un médico lo antes posible',
+                        'No conduzcas si el malestar es severo, pide ayuda',
+                        'Mantén un registro de tus síntomas'
+                    ],
+                    medications: [],
+                    warnings: ['Este es un caso que requiere evaluación profesional inmediata.'],
+                    sources: []
+                };
+            }
+            
+            if (severity >= 5 || duration === ">7d") {
+                return {
+                    level: 'consult',
+                    title: 'Consulta con Profesional',
+                    message: 'Te recomiendo agendar una cita con un médico en las próximas 24-72 horas para una evaluación adecuada.',
+                    actions: [
+                        'Agenda una cita médica pronto',
+                        'Lleva un registro detallado de síntomas',
+                        'Anota cualquier medicamento que tomes'
+                    ],
+                    medications: [],
+                    warnings: ['Los síntomas persistentes o moderados deben ser evaluados por un profesional.'],
+                    sources: []
+                };
+            }
+            
+            return {
+                level: 'selfcare',
+                title: '🏠 Recomendaciones de Autocuidado',
+                message: 'Basándome en tu descripción, parece ser un caso leve que puedes manejar con autocuidado.',
+                actions: [
+                    'Descansa adecuadamente',
+                    'Mantente bien hidratado/a',
+                    'Come alimentos nutritivos y ligeros',
+                    'Evita el estrés'
+                ],
+                medications: getSuggestedOTCMedications(),
+                warnings: [
+                    'Si los síntomas empeoran o persisten más de 3-5 días, consulta a un médico',
+                    'Si aparece fiebre alta (>38.5°C), dificultad para respirar, o dolor severo, busca atención médica',
+                    'Estas son sugerencias generales, no un diagnóstico'
+                ],
+                sources: [
+                    { name: 'OMS - Autocuidado', url: 'https://www.who.int/es/health-topics/self-care' },
+                    { name: 'NHS - Cuidados en casa', url: 'https://www.nhs.uk/live-well/' }
+                ]
+            };
+        }
+
+        function getSuggestedOTCMedications() {
+            const meds = [];
+            
+            if (state.userData.pregnant !== "no") {
+                return [{
+                    category: '⚠️ Importante',
+                    description: 'Debido a tu estado de embarazo/lactancia, NO debes tomar medicamentos sin consultar a tu médico primero.',
+                    warnings: ['Consulta a tu médico antes de tomar cualquier medicamento']
+                }];
+            }
+            
+            if (state.symptoms.fever === "yes") {
+                meds.push({
+                    category: 'Analgésicos/Antipiréticos',
+                    description: 'Para fiebre y dolor leve: Paracetamol o Ibuprofeno (categoría OTC)',
+                    warnings: [
+                        'NO automedicar sin leer las instrucciones del empaque',
+                        'Respetar dosis máximas diarias',
+                        'Si tienes problemas hepáticos, evita paracetamol',
+                        'Si tienes problemas gástricos, evita ibuprofeno'
+                    ]
+                });
+            }
+            
+            if (state.userData.allergies.length > 0) {
+                meds.push({
+                    category: '⚠️ Alergias Conocidas',
+                    description: `Ten en cuenta tus alergias: ${state.userData.allergies.join(', ')}`,
+                    warnings: ['Verifica que cualquier medicamento no contenga sustancias a las que eres alérgico/a']
+                });
+            }
+            
+            if (state.userData.medications.length > 0) {
+                meds.push({
+                    category: '⚠️ Interacciones Medicamentosas',
+                    description: 'Dado que tomas otros medicamentos, consulta con un farmacéutico antes de tomar cualquier OTC',
+                    warnings: ['Pueden existir interacciones con tus medicamentos actuales']
+                });
+            }
+            
+            return meds;
+        }
+
+        async function showRecommendation(recommendation) {
+            let colorClass = 'primary';
+            if (recommendation.level === 'urgent') colorClass = 'danger';
+            if (recommendation.level === 'consult') colorClass = 'warning';
+            if (recommendation.level === 'selfcare') colorClass = 'success';
+            
+            const resultHTML = `
+                <div class="message">
+                    <div class="avatar doctor">⚕️</div>
+                    <div class="message-content" style="max-width: 100%;">
+                        <div class="result-card">
+                            <h3>${recommendation.title}</h3>
+                            <p style="color: var(--text-light); line-height: 1.8; margin-bottom: 1rem;">
+                                ${recommendation.message}
+                            </p>
+                            
+                            <h3>Acciones Recomendadas:</h3>
+                            <ul>
+                                ${recommendation.actions.map(action => `<li>${action}</li>`).join('')}
+                            </ul>
+                            
+                            ${recommendation.medications.length > 0 ? `
+                                <h3>Opciones de Medicamentos OTC:</h3>
+                                ${recommendation.medications.map(med => `
+                                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius); margin: 0.5rem 0;">
+                                        <strong>${med.category}</strong><br>
+                                        <span style="color: var(--text-light);">${med.description}</span>
+                                        ${med.warnings.length > 0 ? `
+                                            <div class="warning" style="margin-top: 0.5rem;">
+                                                <strong>⚠️ Advertencias:</strong>
+                                                <ul style="margin: 0.5rem 0 0 1rem;">
+                                                    ${med.warnings.map(w => `<li>${w}</li>`).join('')}
+                                                </ul>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                                <div class="warning">
+                                    <strong>❗ IMPORTANTE:</strong> Nunca superes las dosis recomendadas. Lee siempre el prospecto. Si tienes dudas, consulta a un farmacéutico.
+                                </div>
+                            ` : ''}
+                            
+                            <div class="warning">
+                                <strong>⚠️ Cuándo Buscar Ayuda:</strong>
+                                <ul>
+                                    ${recommendation.warnings.map(w => `<li>${w}</li>`).join('')}
+                                </ul>
+                            </div>
+                            
+                            ${recommendation.sources.length > 0 ? `
+                                <div class="sources">
+                                    <strong>📚 Fuentes de Información:</strong><br>
+                                    ${recommendation.sources.map(source => `
+                                        <a href="${source.url}" target="_blank" rel="noopener">${source.name}</a>
+                                    `).join(' | ')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.insertAdjacentHTML('beforeend', resultHTML);
+            scrollToBottom();
+            
+            await delay(2000);
+            await addDoctorMessage("¿Hay algo más en lo que pueda ayudarte?");
+            showOptions([
+                { text: "Nueva consulta", value: "new" },
+                { text: "Tengo una pregunta", value: "question" },
+                { text: "Finalizar", value: "end" }
+            ], handleFinalAction);
+        }
+
+        function handleFinalAction(value) {
+            addUserMessage(value === "new" ? "Nueva consulta" : value === "question" ? "Tengo una pregunta" : "Finalizar");
+            
+            if (value === "new") {
+                resetAndRestart();
+            } else if (value === "question") {
+                addDoctorMessage("Claro, ¿cuál es tu pregunta?");
+                showTextInput((text) => {
+                    addDoctorMessage("Gracias por tu pregunta. Para consultas específicas, te recomiendo hablar con un profesional de la salud que pueda darte una respuesta personalizada y precisa.");
+                });
+            } else {
+                addDoctorMessage("Gracias por usar el Doctor Virtual BHR. Recuerda que esta herramienta es solo orientativa. ¡Cuídate! 😊💙");
+            }
+        }
+
+        function resetAndRestart() {
+            state.currentStep = 1;
+            state.userData = {
+                age: null,
+                pregnant: null,
+                allergies: [],
+                medications: [],
+                chronicConditions: [],
+                language: 'es'
+            };
+            state.symptoms = {
+                description: '',
+                duration: null,
+                severity: null,
+                sudden: null,
+                fever: null,
+                bleeding: null,
+                breathing: null
+            };
+            state.redFlags = false;
+            state.conversationHistory = [];
+            
+            chatContainer.innerHTML = '';
+            updateProgress(1);
+            startConversation();
+        }
+
+        async function addDoctorMessage(text) {
+            const messageHTML = `
+                <div class="message">
+                    <div class="avatar doctor">⚕️</div>
+                    <div class="message-content">
+                        <p>${text}</p>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+            state.conversationHistory.push({ role: 'doctor', text });
+        }
+
+        function addUserMessage(text) {
+            const messageHTML = `
+                <div class="message user">
+                    <div class="avatar user">👤</div>
+                    <div class="message-content">
+                        <p>${text}</p>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+            state.conversationHistory.push({ role: 'user', text });
+        }
+
+        function showOptions(options, callback) {
+            const optionsHTML = `
+                <div class="message">
+                    <div class="avatar doctor">⚕️</div>
+                    <div class="message-content" style="max-width: 100%;">
+                        <div class="options-container">
+                            ${options.map((opt, idx) => `
+                                <button class="option-btn" onclick="selectOption(${idx}, '${opt.value}')">
+                                    <span class="icon">${opt.icon || '▪️'}</span>
+                                    <span>${opt.text}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', optionsHTML);
+            scrollToBottom();
+            
+            window.currentCallback = callback;
+        }
+
+        function selectOption(index, value) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (window.currentCallback) {
+                window.currentCallback(value);
+                window.currentCallback = null;
+            }
+        }
+
+        function showScaleSelector(min, max, callback) {
+            const scaleHTML = `
+                <div class="message">
+                    <div class="avatar doctor">⚕️</div>
+                    <div class="message-content" style="max-width: 100%;">
+                        <div class="scale-selector">
+                            ${Array.from({length: max - min + 1}, (_, i) => min + i).map(num => `
+                                <button class="scale-btn" onclick="selectScale(${num})">${num}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', scaleHTML);
+            scrollToBottom();
+            
+            window.currentCallback = callback;
+        }
+
+        function selectScale(value) {
+            const buttons = document.querySelectorAll('.scale-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (parseInt(btn.textContent) === value) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            if (window.currentCallback) {
+                window.currentCallback(value);
+                window.currentCallback = null;
+            }
+        }
+
+        function showTextInput(callback) {
+            inputContainer.classList.remove('hidden');
+            userInput.focus();
+            
+            window.currentTextCallback = callback;
+        }
+
+        sendBtn.addEventListener('click', handleTextSubmit);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleTextSubmit();
+        });
+
+        function handleTextSubmit() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            
+            addUserMessage(text);
+            userInput.value = '';
+            inputContainer.classList.add('hidden');
+            
+            if (window.currentTextCallback) {
+                window.currentTextCallback(text);
+                window.currentTextCallback = null;
+            }
+        }
+
+        function showTypingIndicator() {
+            const typingHTML = `
+                <div class="message typing-message">
+                    <div class="avatar doctor">⚕️</div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', typingHTML);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const typing = document.querySelector('.typing-message');
+            if (typing) typing.remove();
+        }
+
+        function updateProgress(step) {
+            state.currentStep = step;
+            
+            for (let i = 1; i <= 3; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                if (i < step) {
+                    stepEl.classList.add('completed');
+                    stepEl.classList.remove('active');
+                } else if (i === step) {
+                    stepEl.classList.add('active');
+                    stepEl.classList.remove('completed');
+                } else {
+                    stepEl.classList.remove('active', 'completed');
+                }
+            }
+            
+            const progressLine = document.getElementById('progressLine');
+            const percentage = ((step - 1) / 2) * 100;
+            progressLine.style.width = `${percentage}%`;
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        init();
+    </script>
+
+    <script src="yoshi-sprite.js"></script>
+    <script src="yoshi-integration.js"></script>
+</body>
+</html>

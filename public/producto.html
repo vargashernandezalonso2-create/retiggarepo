@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto - Farmacias tere</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <!-- aaa header igual al del index -bynd -->
+    <header class="header" id="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">⚕️</span>
+                    <span class="logo-text">Farmacias tere</span>
+                </a>
+                
+                <nav class="nav">
+                    <a href="index.html#productos">Productos</a>
+                    <a href="index.html#nosotros">Nosotros</a>
+                    
+                    <div id="nav-auth">
+                        <button class="btn btn-secondary" id="btn-show-login">Iniciar Sesión</button>
+                        <button class="btn btn-primary" id="btn-show-register">Registrarse</button>
+                    </div>
+
+                    <div id="user-info" style="display: none;">
+                        <span id="user-name"></span>
+                        <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
+                    </div>
+                    
+                    <button class="cart-button" id="btn-show-cart" aria-label="Ver carrito">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span class="cart-count" id="cart-count-bubble">0</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- ey contenido principal del producto -bynd -->
+    <main style="margin-top: 100px; min-height: calc(100vh - 200px);">
+        <div class="container">
+            <!-- chintrolas loading inicial -bynd -->
+            <div id="loadingContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 1rem;">
+                <div class="loading"></div>
+                <p style="color: var(--text-light); font-size: 1.1rem;">Cargando producto...</p>
+            </div>
+
+            <!-- vavavava contenedor del producto -bynd -->
+            <div id="productContainer" style="display: none;">
+                <!-- q chidoteee breadcrumb -bynd -->
+                <div style="margin-bottom: 2rem;">
+                    <a href="index.html" style="color: var(--text-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: color var(--transition-base);">
+                        <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        Volver a productos
+                    </a>
+                </div>
+
+                <!-- aaa grid del producto -bynd -->
+                <div class="product-detail-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; background: var(--bg-color); border-radius: var(--radius-lg); padding: 3rem; box-shadow: var(--shadow-md); animation: fadeInUp 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
+                    
+                    <!-- fokeis columna de imagen -bynd -->
+                    <div class="product-image-wrapper" style="background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 2rem; display: flex; align-items: center; justify-content: center; min-height: 500px; position: relative; overflow: hidden;">
+                        <!-- ey badge de stock -bynd -->
+                        <div id="stockBadge" style="position: absolute; top: 1.5rem; right: 1.5rem; padding: 0.75rem 1.25rem; border-radius: var(--radius-full); font-weight: 600; font-size: 0.9rem; display: none; z-index: 10; box-shadow: var(--shadow);"></div>
+                        
+                        <img id="productImage" style="width: 100%; max-width: 450px; height: auto; max-height: 500px; object-fit: contain; border-radius: var(--radius); transition: transform var(--transition-slow); cursor: zoom-in;" alt="Producto">
+                    </div>
+
+                    <!-- chintrolas columna de info -bynd -->
+                    <div class="product-info" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- vavavava categoría badge -bynd -->
+                        <div>
+                            <span class="badge" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; display: inline-block;">
+                                <svg style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM7 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                </svg>
+                                Medicamento
+                            </span>
+                        </div>
+
+                        <!-- q chidoteee título -bynd -->
+                        <h1 id="productTitle" style="font-size: 2.5rem; font-weight: 700; color: var(--text-color); line-height: 1.2; margin: 0;">Cargando...</h1>
+
+                        <!-- aaa precio -bynd -->
+                        <div id="productPrice" style="font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0;">$0.00</div>
+
+                        <!-- ey descripción -bynd -->
+                        <div style="padding: 1.5rem; background: var(--bg-secondary); border-radius: var(--radius); border-left: 4px solid var(--primary-color);">
+                            <p id="productDescription" style="color: var(--text-light); line-height: 1.7; margin: 0;">Cargando descripción...</p>
+                        </div>
+
+                        <!-- chintrolas info adicional -bynd -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--success-color), #059669); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: var(--text-light);">Stock</div>
+                                    <div id="stockText" style="font-weight: 700; color: var(--text-color);">0 unidades</div>
+                                </div>
+                            </div>
+
+                            <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: var(--text-light);">Envío</div>
+                                    <div style="font-weight: 700; color: var(--text-color);">Disponible</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- vavavava selector de cantidad -bynd -->
+                        <div style="padding: 1.5rem; background: var(--bg-secondary); border-radius: var(--radius); border: 2px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
+                                <span style="font-weight: 700; color: var(--text-color); font-size: 1.1rem;">Cantidad:</span>
+                                <div style="display: flex; align-items: center; gap: 1rem; background: var(--bg-color); padding: 0.75rem 1.25rem; border-radius: var(--radius); border: 2px solid var(--border-color);">
+                                    <button id="btnDecrement" class="btn" style="width: 40px; height: 40px; padding: 0; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none; color: white; cursor: pointer; transition: all var(--transition-base);">−</button>
+                                    <span id="quantityValue" style="font-size: 1.5rem; font-weight: 700; min-width: 50px; text-align: center; color: var(--text-color);">1</span>
+                                    <button id="btnIncrement" class="btn" style="width: 40px; height: 40px; padding: 0; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none; color: white; cursor: pointer; transition: all var(--transition-base);">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- q chidoteee botones de acción -bynd -->
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button id="btnAddToCart" class="btn btn-primary" style="flex: 1; padding: 1.25rem 2rem; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+                                <span>Agregar al Carrito</span>
+                                <svg style="width: 24px; height: 24px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- aaa mensaje de seguridad -bynd -->
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: var(--radius); margin-top: 0.5rem;">
+                            <svg style="width: 24px; height: 24px; flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <p style="margin: 0; color: #16a34a; font-size: 0.9rem; font-weight: 600;">Compra 100% segura • Envío a toda la república</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- fokeis error state -bynd -->
+            <div id="errorContainer" style="display: none; text-align: center; padding: 4rem 2rem;">
+                <svg style="width: 100px; height: 100px; color: var(--danger-color); margin-bottom: 1.5rem;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <h2 style="color: var(--danger-color); margin-bottom: 1rem; font-size: 2rem;">Error al cargar el producto</h2>
+                <p id="errorMessage" style="color: var(--text-light); margin-bottom: 2rem; font-size: 1.1rem;"></p>
+                <a href="index.html" class="btn btn-primary">Volver al inicio</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- ey footer -bynd -->
+    <footer style="background: var(--text-color); color: white; padding: 2rem 0; margin-top: 4rem;">
+        <div class="container">
+            <div style="text-align: center;">
+                <p style="margin: 0; opacity: 0.8;">© 2025 Farmacias tere - Tu bienestar, nuestra prioridad</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- aaa incluir app.js para funcionalidad compartida -bynd -->
+    <script src="app.js"></script>
+    
+    <script>
+        // chintrolas lógica específica del producto -bynd
+        let currentQuantity = 1;
+        let currentProduct = null;
+
+        // q chidoteee obtener ID del producto de la URL -bynd
+        function getProductIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // vavavava cargar producto -bynd
+        async function loadProductDetails() {
+            const productId = getProductIdFromURL();
+            
+            if (!productId) {
+                showError('No se especificó un producto válido');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/cliente/productos/${productId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Producto no encontrado');
+                }
+
+                const producto = await response.json();
+                console.log('📦 Producto recibido:', producto);
+                
+                currentProduct = producto;
+                
+                // ey ocultar loading y mostrar producto -bynd
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('productContainer').style.display = 'block';
+                
+                // aaa llenar datos -bynd
+                document.getElementById('productTitle').textContent = producto.nombre;
+                
+                const precioNumerico = parseFloat(producto.precio);
+                document.getElementById('productPrice').textContent = `$${precioNumerico.toFixed(2)}`;
+                
+                document.getElementById('productDescription').textContent = 
+                    producto.descripcion || 'Producto farmacéutico de calidad.';
+                
+                // chintrolas imagen usando img_url directo -bynd
+                const imgElement = document.getElementById('productImage');
+                if (producto.img_url && producto.img_url !== 'NULL' && producto.img_url.trim() !== '') {
+                    imgElement.src = producto.img_url;
+                    imgElement.onerror = function() {
+                        console.warn('⚠️ Error cargando imagen');
+                        this.src = `https://placehold.co/450x450/0056b3/FFFFFF/png?text=${encodeURIComponent(producto.nombre)}`;
+                    };
+                } else {
+                    imgElement.src = `https://placehold.co/450x450/0056b3/FFFFFF/png?text=${encodeURIComponent(producto.nombre)}`;
+                }
+                
+                // vavavava manejo de stock -bynd
+                const stockText = document.getElementById('stockText');
+                const stockBadge = document.getElementById('stockBadge');
+                const btnAddToCart = document.getElementById('btnAddToCart');
+                
+                stockText.textContent = `${producto.stock} unidades`;
+                
+                if (producto.stock > 0) {
+                    stockBadge.textContent = `${producto.stock} disponibles`;
+                    stockBadge.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    stockBadge.style.color = 'white';
+                    stockBadge.style.display = 'block';
+                    btnAddToCart.disabled = false;
+                } else {
+                    stockBadge.textContent = 'Sin stock';
+                    stockBadge.style.background = '#ef4444';
+                    stockBadge.style.color = 'white';
+                    stockBadge.style.display = 'block';
+                    btnAddToCart.disabled = true;
+                    btnAddToCart.innerHTML = '<span>Agotado</span>';
+                }
+                
+                document.title = `${producto.nombre} - Farmacias tere`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+            }
+        }
+
+        // fokeis mostrar error -bynd
+        function showError(message) {
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('errorContainer').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // q chidoteee controles de cantidad -bynd
+        document.getElementById('btnIncrement').addEventListener('click', () => {
+            if (currentProduct && currentQuantity < currentProduct.stock) {
+                currentQuantity++;
+                document.getElementById('quantityValue').textContent = currentQuantity;
+            }
+        });
+
+        document.getElementById('btnDecrement').addEventListener('click', () => {
+            if (currentQuantity > 1) {
+                currentQuantity--;
+                document.getElementById('quantityValue').textContent = currentQuantity;
+            }
+        });
+
+        // ey zoom en imagen al hacer click -bynd
+        document.getElementById('productImage').addEventListener('click', function() {
+            if (this.style.cursor === 'zoom-in') {
+                this.style.transform = 'scale(1.5)';
+                this.style.cursor = 'zoom-out';
+            } else {
+                this.style.transform = 'scale(1)';
+                this.style.cursor = 'zoom-in';
+            }
+        });
+
+        // aaa agregar al carrito -bynd
+        document.getElementById('btnAddToCart').addEventListener('click', async () => {
+            if (!currentProduct) return;
+            
+            // chintrolas verificar autenticación -bynd
+            if (!window.isUserAuthenticated) {
+                if (window.requestLogin) {
+                    window.requestLogin('Debes iniciar sesión para agregar productos al carrito');
+                } else {
+                    alert('Debes iniciar sesión para agregar productos al carrito');
+                }
+                return;
+            }
+            
+            const btn = document.getElementById('btnAddToCart');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span>Agregando...</span>';
+            
+            try {
+                // vavavava usar función global si existe -bynd
+                if (window.addToCart) {
+                    await window.addToCart(currentProduct.id, currentQuantity);
+                    
+                    // q chidoteee resetear cantidad -bynd
+                    currentQuantity = 1;
+                    document.getElementById('quantityValue').textContent = currentQuantity;
+                } else {
+                    throw new Error('Sistema de carrito no disponible');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        });
+
+        // fokeis cargar producto al iniciar -bynd
+        loadProductDetails();
+    </script>
+</body>
+</html>
