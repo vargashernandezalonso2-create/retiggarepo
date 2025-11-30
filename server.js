@@ -17,11 +17,67 @@ const log = {
     warn: (msg, ...args) => console.warn(`⚠️  [WARN] ${msg}`, ...args),
     debug: (msg, ...args) => console.log(`🔍 [DEBUG] ${msg}`, ...args),
     api: (method, path, ...args) => console.log(`📡 [API] ${method} ${path}`, ...args),
-    db: (msg, ...args) => console.log(`🗄️  [DB] ${msg}`, ...args)
+    db: (msg, ...args) => console.log(`🗄️  [DB] ${msg}`, ...args),
+    security: (msg, ...args) => console.log(`🛡️  [SECURITY] ${msg}`, ...args)
 };
 
 log.info('🚀 Iniciando servidor Farmacias Tere...');
 log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+// chintrolas sistema anti-ataques con trolleo -bynd
+let attackDetected = false;
+let requestLog = {};
+let bannedIPs = new Set();
+
+// ey limpiar logs viejos cada 30 segundos -bynd
+setInterval(() => {
+    const now = Date.now();
+    for (const ip in requestLog) {
+        requestLog[ip] = requestLog[ip].filter(t => now - t < 30000);
+        if (requestLog[ip].length === 0) {
+            delete requestLog[ip];
+        }
+    }
+}, 30000);
+
+// vavavava middleware de detección de ataques -bynd
+app.use((req, res, next) => {
+    const ip = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    
+    // aaa si ya está baneado por ataque -bynd
+    if (bannedIPs.has(ip)) {
+        log.security(`🚫 IP baneada intentando acceder: ${ip}`);
+        return res.redirect('/trolleo.html');
+    }
+    
+    // ey inicializar log del IP -bynd
+    if (!requestLog[ip]) {
+        requestLog[ip] = [];
+    }
+    
+    // chintrolas registrar request -bynd
+    requestLog[ip].push(now);
+    
+    // q chidoteee detectar ataque: más de 40 requests en 10 segundos -bynd
+    const recentRequests = requestLog[ip].filter(t => now - t < 10000);
+    
+    if (recentRequests.length > 40) {
+        attackDetected = true;
+        bannedIPs.add(ip);
+        
+        log.security('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        log.security('🚨 ATAQUE DETECTADO 🚨');
+        log.security(`IP: ${ip}`);
+        log.security(`Requests en 10s: ${recentRequests.length}`);
+        log.security('Acción: TROLLEADO CON NYANCAT 😹');
+        log.security('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        return res.redirect('/trolleo.html');
+    }
+    
+    next();
+});
 
 // ey middleware básico -bynd
 app.use(cors({
@@ -853,5 +909,6 @@ app.listen(PORT, () => {
     log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     log.info(`📍 URL: http://localhost:${PORT}`);
     log.info(`🌐 Entorno: ${process.env.NODE_ENV || 'development'}`);
+    log.info(`🛡️  Sistema anti-ataques: ACTIVO 😹`);
     log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
