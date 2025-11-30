@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>😹</title>
+    <title>🐱</title>
     <style>
         * {
             margin: 0;
@@ -25,49 +25,47 @@
             height: 100vh;
             object-fit: contain;
         }
-        
-        .mensaje {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Comic Sans MS', cursive;
-            font-size: 4rem;
-            color: #ff00ff;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-            animation: rainbow 2s linear infinite;
-            z-index: 10;
-            pointer-events: none;
-        }
-        
-        @keyframes rainbow {
-            0% { color: #ff0000; }
-            16% { color: #ff8800; }
-            33% { color: #ffff00; }
-            50% { color: #00ff00; }
-            66% { color: #0088ff; }
-            83% { color: #8800ff; }
-            100% { color: #ff0000; }
-        }
     </style>
 </head>
 <body>
-    <div class="mensaje">😹 NICE TRY 😹</div>
-    <video autoplay loop>
+    <video id="trollVideo" loop>
         <source src="/gatov2.mp4" type="video/mp4">
     </video>
     
     <script>
-        // aaa forzar reproducción con audio -bynd
-        const video = document.querySelector('video');
-        video.volume = 1.0; // volumen al máximo -bynd
+        // aaa forzar reproducción con audio bien chido -bynd
+        const video = document.getElementById('trollVideo');
         
-        // ey por si el navegador bloquea autoplay -bynd
-        video.play().catch(() => {
-            // chintrolas si falla el autoplay, intentar al hacer click -bynd
-            document.body.addEventListener('click', () => {
-                video.play();
-            }, { once: true });
+        // ey configurar volumen máximo -bynd
+        video.volume = 1.0;
+        
+        // chintrolas intentar reproducir automáticamente -bynd
+        const intentarReproducir = () => {
+            video.play().then(() => {
+                console.log('🎵 Reproduciendo...');
+            }).catch(err => {
+                console.log('⚠️ Autoplay bloqueado, esperando interacción');
+                
+                // vavavava si falla, reproducir al primer click/touch -bynd
+                const eventos = ['click', 'touchstart', 'keydown'];
+                eventos.forEach(evento => {
+                    document.addEventListener(evento, () => {
+                        video.play();
+                    }, { once: true });
+                });
+            });
+        };
+        
+        // q chidoteee intentar cuando cargue el video -bynd
+        if (video.readyState >= 3) {
+            intentarReproducir();
+        } else {
+            video.addEventListener('canplay', intentarReproducir);
+        }
+        
+        // fokeis por si acaso intentar de una -bynd
+        window.addEventListener('load', () => {
+            setTimeout(intentarReproducir, 100);
         });
     </script>
 </body>
