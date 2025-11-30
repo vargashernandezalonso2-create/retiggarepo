@@ -42,13 +42,18 @@ setInterval(() => {
 
 // vavavava middleware de detección de ataques -bynd
 app.use((req, res, next) => {
+    // aaa excluir la página de trolleo del sistema de detección -bynd
+    if (req.path === '/baduser' || req.path === '/gatov2.mp4') {
+        return next();
+    }
+    
     const ip = req.ip || req.connection.remoteAddress;
     const now = Date.now();
     
     // aaa si ya está baneado por ataque -bynd
     if (bannedIPs.has(ip)) {
         log.security(`🚫 IP baneada intentando acceder: ${ip}`);
-        return res.redirect('/trolleo.html');
+        return res.redirect('/baduser');
     }
     
     // ey inicializar log del IP -bynd
@@ -73,7 +78,7 @@ app.use((req, res, next) => {
         log.security('Acción: TROLLEADO CON NYANCAT 😹');
         log.security('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
-        return res.redirect('/trolleo.html');
+        return res.redirect('/baduser');
     }
     
     next();
