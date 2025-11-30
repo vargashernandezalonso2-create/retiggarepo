@@ -43,7 +43,7 @@ setInterval(() => {
 // vavavava middleware de detección de ataques -bynd
 app.use((req, res, next) => {
     // aaa excluir la página de trolleo del sistema de detección -bynd
-    if (req.path === '/baduser' || req.path === '/gatov2.mp4') {
+    if (req.path === '/baduser.html' || req.path === '/gatov2.mp4') {
         return next();
     }
     
