@@ -14,11 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerModal = document.getElementById('register-modal');
     const cartOverlay = document.getElementById('side-cart-overlay');
     const cartElement = document.getElementById('side-cart');
+    const cartBody = document.getElementById('cart-body');
+    const cartFooter = document.getElementById('cart-footer');
+    const cartSubtotal = document.getElementById('cart-subtotal');
     const cartCountBubble = document.getElementById('cart-count-bubble');
-    // Aseguramos que el elemento del contador tenga la clase 'cart-count' para la animación
-    if (cartCountBubble) {
-        cartCountBubble.classList.add('cart-count');
-    }
     const navAuth = document.getElementById('nav-auth');
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name');
@@ -45,18 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Si elige CLIENTE
     if(btnRoleClient) {
         btnRoleClient.addEventListener('click', () => {
-            // 1. Cerramos el modal de selección de rol
+            alert('Acceso de Cliente activado');
             closeModal(roleModal);
-            
-            // 2. Abrimos inmediatamente el modal de Iniciar Sesión (Email/Pass)
-            const loginModal = document.getElementById('login-modal');
-            if (loginModal) {
-                setTimeout(() => {
-                    openModal(loginModal);
-                }, 300); // Pequeño retraso para una transición suave
-            }
-
-            // 3. Ajustes visuales de rol (opcional)
+            // Habilitar funciones básicas (ocultar cosas de admin si las hubiera)
             document.body.classList.add('role-client');
             document.body.classList.remove('role-admin');
         });
@@ -165,7 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAPI(url, options = {}) {
         try {
-            const response = await fetch(url, options);
+            // aaa agregar credentials por default para sesiones -bynd
+            const fetchOptions = {
+                credentials: 'include',
+                ...options
+            };
+            const response = await fetch(url, fetchOptions);
             if (response.status === 401 && options.method !== 'GET' && !url.includes('/api/auth/check')) {
                 showAlert('Debes iniciar sesión para realizar esta acción.', 'warning');
                 openModal(loginModal);
@@ -414,26 +409,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadCart() {
-        // Obtenemos los elementos aquí dentro para asegurar que existen
-        const cartBody = document.getElementById('cart-body');
-        const cartFooter = document.getElementById('cart-footer');
-        const cartSubtotal = document.getElementById('cart-subtotal');
-        const cartCountBubble = document.getElementById('cart-count-bubble');
-
-        if (!cartBody) return; // Protección si no existe el carrito en el HTML
-
         try {
-            // Agregamos un timestamp (?t=...) para evitar que el navegador guarde caché
-            const data = await fetchAPI(`/api/cliente/carrito?t=${Date.now()}`, {
-                headers: { 'Cache-Control': 'no-cache' }
-            });
+            const data = await fetchAPI('/api/cliente/carrito');
             
-            console.log('📦 Datos del carrito recibidos:', data); // Para depurar
-
-            if (!data.items || data.items.length === 0) {
+            // aaa el backend devuelve 'carrito' no 'items' -bynd
+            const carrito = data.carrito || [];
+            
+            if (!carrito || carrito.length === 0) {
                 cartBody.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
-                if(cartFooter) cartFooter.style.display = 'none';
-                if(cartCountBubble) cartCountBubble.style.display = 'none';
+                cartFooter.style.display = 'none';
+                cartCountBubble.style.display = 'none';
                 return;
             }
 
@@ -441,13 +426,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let total = 0;
             let itemCount = 0;
 
-            data.items.forEach(item => {
-                // Mapear producto asegurando que existan los datos
-                const prod = item.producto || item; 
-                const nombre = prod.name_prod || prod.nombre || 'Producto';
-                const img = prod.imagen_url || 'https://via.placeholder.com/60';
+            carrito.forEach(item => {
+                // chintrolas el item ya viene con toda la info -bynd
                 const cantidad = item.cantidad || 1;
-                const precioUnitario = parseFloat(prod.costo_uni || prod.precio || 0);
+                const precioUnitario = parseFloat(item.precio || 0);
                 const subtotal = precioUnitario * cantidad;
                 
                 total += subtotal;
@@ -456,193 +438,148 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
                 itemEl.innerHTML = `
-                    <img src="${img}" alt="${nombre}" class="cart-item-img">
-                    <div class="cart-item-details">
-                        <h4>${nombre}</h4>
-                        <p class="cart-item-price">$${precioUnitario.toFixed(2)}</p>
-                        <div class="cart-item-actions">
-                            <div class="qty-control small">
-                                <button class="btn-qty btn-qty-decrease" data-item-id="${item.id}">-</button>
-                                <span class="qty-input">${cantidad}</span>
-                                <button class="btn-qty btn-qty-increase" data-item-id="${item.id}" data-producto-id="${prod.id || prod.id_producto}">+</button>
-                            </div>
-                            <button class="btn-remove btn-cart-remove" data-item-id="${item.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
-                        </div>
+                    <img src="${item.imagen_url || 'https://via.placeholder.com/60'}" alt="${item.nombre}">
+                    <div class="cart-item-info">
+                        <h4>${item.nombre}</h4>
+                        <p class="cart-item-price">$${precioUnitario.toFixed(2)} × ${cantidad}</p>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="btn-qty-decrease" data-producto-id="${item.id}">
+                            <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                        </button>
+                        <span class="cart-item-quantity">${cantidad}</span>
+                        <button class="btn-qty-increase" data-producto-id="${item.id}">
+                            <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                        </button>
+                        <button class="btn-cart-remove" data-producto-id="${item.id}">
+                            <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
                     </div>
                 `;
                 cartBody.appendChild(itemEl);
             });
 
-            if (cartSubtotal) cartSubtotal.textContent = `$${total.toFixed(2)}`;
-            if (cartFooter) cartFooter.style.display = 'block';
-            
-            if (cartCountBubble) {
-                cartCountBubble.textContent = itemCount;
-                cartCountBubble.style.display = 'flex';
-            }
+            cartSubtotal.textContent = `$${total.toFixed(2)}`;
+            cartFooter.style.display = 'block';
+            cartCountBubble.textContent = itemCount;
+            cartCountBubble.style.display = 'flex';
 
-            // Reasignar eventos a los nuevos botones generados
-            attachCartEvents(); 
+            // ey aumentar cantidad -bynd
+            document.querySelectorAll('.btn-qty-increase').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const productoId = e.currentTarget.dataset.productoId;
+                    try {
+                        await fetchAPI('/api/cliente/carrito/agregar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: productoId, cantidad: 1 })
+                        });
+                        loadCart();
+                    } catch (error) {
+                        showAlert(error.message, 'danger');
+                    }
+                });
+            });
+
+            // ey disminuir cantidad -bynd
+            document.querySelectorAll('.btn-qty-decrease').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const productoId = e.currentTarget.dataset.productoId;
+                    const item = carrito.find(i => i.id == productoId);
+                    
+                    try {
+                        const nuevaCantidad = (item.cantidad || 1) - 1;
+                        await fetchAPI(`/api/cliente/carrito/actualizar/${productoId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cantidad: nuevaCantidad })
+                        });
+                        loadCart();
+                    } catch (error) {
+                        showAlert(error.message, 'danger');
+                    }
+                });
+            });
+
+            // ey eliminar del carrito -bynd
+            document.querySelectorAll('.btn-cart-remove').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const productoId = e.currentTarget.dataset.productoId;
+                    try {
+                        await fetchAPI(`/api/cliente/carrito/eliminar/${productoId}`, {
+                            method: 'DELETE'
+                        });
+                        showAlert('Producto eliminado del carrito', 'info');
+                        loadCart();
+                    } catch (error) {
+                        showAlert(error.message, 'danger');
+                    }
+                });
+            });
 
         } catch (error) {
             console.error('Error al cargar carrito:', error);
             cartBody.innerHTML = '<p class="cart-empty">Error al cargar el carrito.</p>';
-            if(cartFooter) cartFooter.style.display = 'none';
+            cartFooter.style.display = 'none';
         }
-    }
-
-    // Función auxiliar para reasignar eventos (ponla justo debajo de loadCart)
-    function attachCartEvents() {
-        document.querySelectorAll('.btn-qty-increase').forEach(btn => {
-            btn.onclick = async (e) => {
-                e.preventDefault(); 
-                const productoId = e.currentTarget.dataset.productoId;
-                try {
-                    await fetchAPI('/api/cliente/carrito/agregar', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ producto_id: productoId, cantidad: 1 })
-                    });
-                    loadCart(); 
-                } catch (err) { console.error(err); }
-            };
-        });
-
-        document.querySelectorAll('.btn-qty-decrease').forEach(btn => {
-            btn.onclick = async (e) => {
-                e.preventDefault();
-                const itemId = e.currentTarget.dataset.itemId;
-                try {
-                    await fetchAPI(`/api/cliente/carrito/${itemId}/decrementar`, { method: 'PUT' });
-                    loadCart();
-                } catch (err) { console.error(err); }
-            };
-        });
-
-        document.querySelectorAll('.btn-cart-remove').forEach(btn => {
-            btn.onclick = async (e) => {
-                e.preventDefault();
-                const itemId = e.currentTarget.dataset.itemId;
-                try {
-                    await fetchAPI(`/api/cliente/carrito/${itemId}`, { method: 'DELETE' });
-                    loadCart();
-                } catch (err) { console.error(err); }
-            };
-        });
     }
 
     window.loadCart = loadCart;
 
-    // ==========================================
-    // LÓGICA DE PAGO (CHECKOUT)
-    // ==========================================
-    // NOTA: La variable checkoutForm ya está declarada al inicio del script.
-
+    // vavavava validar checkout form -bynd
     if (checkoutForm) {
-        // Reemplazamos el submit normal para hacerlo más bonito con SweetAlert
         checkoutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Validar campos básicos
-            const direccionInput = document.getElementById('direccionEnvio');
-            const direccion = direccionInput ? direccionInput.value.trim() : '';
+            if (checkoutError) checkoutError.style.display = 'none';
 
-            // 1. Verificar si el carrito está vacío (usando el contador del carrito)
-            // Assuming cartCountBubble holds the number of items
-            if (cartCountBubble && parseInt(cartCountBubble.textContent) === 0) {
-                await Swal.fire({
-                    title: 'Tu carrito está vacío',
-                    text: 'Agrega algunos productos antes de pagar.',
-                    icon: 'info',
-                    confirmButtonColor: '#3498db'
-                });
+            const metodoPagoInput = document.querySelector('input[name="metodoPago"]:checked');
+            const direccionEnvioInput = document.getElementById('direccionEnvio');
+            const btn = checkoutForm.querySelector('button[type="submit"]');
+            
+            if (!metodoPagoInput || !direccionEnvioInput) {
+                if (checkoutError) {
+                    checkoutError.textContent = 'Por favor completa todos los campos';
+                    checkoutError.style.display = 'block';
+                }
                 return;
             }
-
-            if(!direccion) {
-                await Swal.fire('Falta información', 'Por favor ingresa una dirección de envío', 'warning');
-                return;
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Procesando...';
             }
 
-            // Simulación de proceso
-            const btnSubmit = checkoutForm.querySelector('button[type="submit"]');
-            const textoOriginal = btnSubmit.innerHTML; // Usar innerHTML para mantener iconos
-            
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...'; // SweetAlert2 often requires Font Awesome for spinner
-
-            // Esperar 2 segundos simulando conexión con banco
-            await new Promise(r => setTimeout(r, 2000));
-
-            // Simular llamada a la API de pedido real
             try {
-                const metodoPagoInput = document.querySelector('input[name="metodoPago"]:checked');
-                const metodoPago = metodoPagoInput ? metodoPagoInput.value : 'tarjeta'; // Default to tarjeta
-
                 const resultado = await fetchAPI('/api/cliente/pedido', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        metodoPago: metodoPago,
-                        direccionEnvio: direccion
+                    body: JSON.stringify({ 
+                        metodoPago: metodoPagoInput.value, 
+                        direccionEnvio: direccionEnvioInput.value 
                     })
                 });
-
-                // ¡Éxito!
-                closeCart(); // Cerrar carrito (using existing closeCart function)
                 
-                // Lluvia masiva de confeti
-                var duration = 3 * 1000;
-                var animationEnd = Date.now() + duration;
-                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
-
-                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
-
-                var interval = setInterval(function() {
-                    var timeLeft = animationEnd - Date.now();
-                    if (timeLeft <= 0) {
-                        return clearInterval(interval);
-                    }
-                    var particleCount = 50 * (timeLeft / duration);
-                    // since particles fall down, skew to the right to have them make a nice arc
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-                }, 250);
-
-                await Swal.fire({
-                    title: '¡Pedido Exitoso!',
-                    text: `Gracias por tu compra. Tu pedido #${resultado.pedido.id} llegará a: ${direccion}`,
-                    icon: 'success',
-                    confirmButtonColor: '#0056b3',
-                    confirmButtonText: 'Genial',
-                    backdrop: `
-                        rgba(0,0,123,0.4)
-                        url("https://media.giphy.com/media/26tOZ42Mg6pbTUPVS/giphy.gif")
-                        left top
-                        no-repeat
-                    `
-                });
-
-                // Recargar para limpiar (o llamar a tu función de limpiar carrito)
-                window.location.href = 'index.html'; // This will reload the page and thus clear the cart and reset UI.
+                showAlert(`¡Pedido #${resultado.pedido.id} realizado con éxito!`, 'success');
+                closeCart();
+                loadCart();
+                checkoutForm.reset();
 
             } catch (error) {
-                // Manejo de errores de la API
-                Swal.fire({
-                    title: 'Error en el Pedido',
-                    text: error.message || 'Hubo un problema al procesar tu pedido. Intenta nuevamente.',
-                    icon: 'error',
-                    confirmButtonColor: '#d33'
-                });
                 if (checkoutError) {
-                    checkoutError.textContent = error.message;
+                    checkoutError.textContent = `Error: ${error.message}`;
                     checkoutError.style.display = 'block';
                 }
             } finally {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = textoOriginal;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Confirmar Pedido';
+                }
             }
         });
     }
@@ -699,8 +636,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (addBtn) {
                     addBtn.addEventListener('click', async (e) => {
                         e.preventDefault();
-                        // Llama a la nueva función global window.addToCart
-                        await window.addToCart(prod.id, 1, addBtn);
+
+                        if (!window.isUserAuthenticated) {
+                            window.requestLogin('⚠️ Para continuar con la compra necesitas iniciar sesión o registrarte.');
+                            return;
+                        }
+
+                        try {
+                            // aaa manda 'id' como espera el backend -bynd
+                            await fetchAPI('/api/cliente/carrito/agregar', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include', // ey esto es necesario para las sesiones -bynd
+                                body: JSON.stringify({ id: prod.id, cantidad: 1 })
+                            });
+                            showAlert('Producto agregado exitosamente', 'success');
+                            loadCart();
+                        } catch (err) {
+                            showAlert(err.message, 'danger');
+                        }
                     });
                 }
             });
@@ -840,36 +794,5 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (hours < 19) greeting = 'Buenas tardes';
     else greeting = 'Buenas noches';
 
-    console.log(`${greeting} a Farmacias tere`);
+    console.log(`${greeting} a Farmacia PO's`);
 });
-
-// ==========================================
-// FUNCIONES PARA EFECTOS DEL CARRITO (Consolidado)
-// ==========================================
-
-// Función para animar el pequeño contador rojo del carrito
-function animateCartIcon() {
-    const cartCount = document.querySelector('.cart-count'); // This is cartCountBubble
-    if (cartCount) {
-        cartCount.classList.add('bump');
-        cartCount.addEventListener('animationend', () => {
-            cartCount.classList.remove('bump');
-        }, { once: true });
-    }
-}
-
-// Nueva función consolidada para manejar los efectos visuales al añadir al carrito
-function handleAddToCartSuccessEffects() {
-    // Lanzar confeti desde la esquina superior derecha
-    if (typeof confetti === 'function') {
-        confetti({
-            particleCount: 60,
-            spread: 50,
-            origin: { y: 0.1, x: 0.9 }, // Origen cerca del icono del carrito (arriba a la derecha)
-            colors: ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c'],
-            disableForReducedMotion: true
-        });
-    }
-    // Animar el icono del carrito
-    animateCartIcon();
-}
