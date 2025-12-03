@@ -29,8 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkoutError = document.getElementById('checkout-error');
 
     // ==========================================
-    // LÓGICA DE SELECCIÓN DE ROL
+    // LÓGICA DE SELECCIÓN DE ROL (DESHABILITADA)
+    // chintrolas comentado porque ahora todos entran directo como clientes -bynd
     // ==========================================
+    /*
     const roleModal = document.getElementById('role-modal');
     const roleStep1 = document.getElementById('role-step-1');
     const roleStepAdmin = document.getElementById('role-step-admin');
@@ -107,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => adminInput.classList.remove('error'), 500);
         }
     }
+    */
     // ==========================================
     // FIN LÓGICA ROL
     // ==========================================
@@ -155,12 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAPI(url, options = {}) {
         try {
-            // aaa agregar credentials por default para sesiones -bynd
-            const fetchOptions = {
-                credentials: 'include',
-                ...options
-            };
-            const response = await fetch(url, fetchOptions);
+            const response = await fetch(url, options);
             if (response.status === 401 && options.method !== 'GET' && !url.includes('/api/auth/check')) {
                 showAlert('Debes iniciar sesión para realizar esta acción.', 'warning');
                 openModal(loginModal);
@@ -232,26 +230,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const switchToLogin = document.getElementById('switch-to-login');
     const btnLogout = document.getElementById('btn-logout');
     
-    // Función para pedir login (con o sin mensaje de advertencia)
+    // aaa función para pedir login directo -bynd
     window.requestLogin = function(mensajeAdvertencia = null) {
-        const modal = document.getElementById('role-modal');
-        const alertBox = document.getElementById('purchase-alert');
-        
-        if (modal) {
-            // Si hay mensaje (intento de compra), mostramos la alerta amarilla
-            if (mensajeAdvertencia && alertBox) {
-                alertBox.style.display = 'block';
-                alertBox.textContent = mensajeAdvertencia;
-            } else if (alertBox) {
-                // Si es login normal (clic en botón), ocultamos la alerta
-                alertBox.style.display = 'none';
-            }
-    
-            // Mostrar el modal
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('active'), 10);
-            document.body.style.overflow = 'hidden';
+        // q chidoteee mostrar alerta si hay mensaje de advertencia -bynd
+        if (mensajeAdvertencia) {
+            showAlert(mensajeAdvertencia, 'warning');
         }
+        
+        // ey abrir modal de login directamente -bynd
+        openModal(loginModal);
     };
 
     if (btnShowLogin) { // O el ID que estés usando para el botón del header
@@ -412,10 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await fetchAPI('/api/cliente/carrito');
             
-            // aaa el backend devuelve 'carrito' no 'items' -bynd
-            const carrito = data.carrito || [];
-            
-            if (!carrito || carrito.length === 0) {
+            if (!data.items || data.items.length === 0) {
                 cartBody.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
                 cartFooter.style.display = 'none';
                 cartCountBubble.style.display = 'none';
@@ -426,10 +410,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let total = 0;
             let itemCount = 0;
 
-            carrito.forEach(item => {
-                // chintrolas el item ya viene con toda la info -bynd
+            data.items.forEach(item => {
+                // chintrolas mapear item del carrito -bynd
+                const prod = mapearProducto(item.producto || item);
                 const cantidad = item.cantidad || 1;
-                const precioUnitario = parseFloat(item.precio || 0);
+                const precioUnitario = parseFloat(prod.precio || 0);
                 const subtotal = precioUnitario * cantidad;
                 
                 total += subtotal;
@@ -438,24 +423,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
                 itemEl.innerHTML = `
-                    <img src="${item.imagen_url || 'https://via.placeholder.com/60'}" alt="${item.nombre}">
+                    <img src="${prod.imagen_url || 'https://via.placeholder.com/60'}" alt="${prod.nombre}">
                     <div class="cart-item-info">
-                        <h4>${item.nombre}</h4>
+                        <h4>${prod.nombre}</h4>
                         <p class="cart-item-price">$${precioUnitario.toFixed(2)} × ${cantidad}</p>
                     </div>
                     <div class="cart-item-actions">
-                        <button class="btn-qty-decrease" data-producto-id="${item.id}">
+                        <button class="btn-qty-decrease" data-item-id="${item.id}" data-producto-id="${prod.id}">
                             <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
                         </button>
                         <span class="cart-item-quantity">${cantidad}</span>
-                        <button class="btn-qty-increase" data-producto-id="${item.id}">
+                        <button class="btn-qty-increase" data-item-id="${item.id}" data-producto-id="${prod.id}">
                             <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
                         </button>
-                        <button class="btn-cart-remove" data-producto-id="${item.id}">
+                        <button class="btn-cart-remove" data-item-id="${item.id}">
                             <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                             </svg>
@@ -470,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cartCountBubble.textContent = itemCount;
             cartCountBubble.style.display = 'flex';
 
-            // ey aumentar cantidad -bynd
             document.querySelectorAll('.btn-qty-increase').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const productoId = e.currentTarget.dataset.productoId;
@@ -478,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await fetchAPI('/api/cliente/carrito/agregar', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: productoId, cantidad: 1 })
+                            body: JSON.stringify({ producto_id: productoId, cantidad: 1 })
                         });
                         loadCart();
                     } catch (error) {
@@ -487,18 +471,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            // ey disminuir cantidad -bynd
             document.querySelectorAll('.btn-qty-decrease').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const productoId = e.currentTarget.dataset.productoId;
-                    const item = carrito.find(i => i.id == productoId);
-                    
+                    const itemId = e.currentTarget.dataset.itemId;
                     try {
-                        const nuevaCantidad = (item.cantidad || 1) - 1;
-                        await fetchAPI(`/api/cliente/carrito/actualizar/${productoId}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cantidad: nuevaCantidad })
+                        await fetchAPI(`/api/cliente/carrito/${itemId}/decrementar`, {
+                            method: 'PUT'
                         });
                         loadCart();
                     } catch (error) {
@@ -507,12 +485,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            // ey eliminar del carrito -bynd
             document.querySelectorAll('.btn-cart-remove').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const productoId = e.currentTarget.dataset.productoId;
+                    const itemId = e.currentTarget.dataset.itemId;
                     try {
-                        await fetchAPI(`/api/cliente/carrito/eliminar/${productoId}`, {
+                        await fetchAPI(`/api/cliente/carrito/${itemId}`, {
                             method: 'DELETE'
                         });
                         showAlert('Producto eliminado del carrito', 'info');
@@ -643,12 +620,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         try {
-                            // aaa manda 'id' como espera el backend -bynd
                             await fetchAPI('/api/cliente/carrito/agregar', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include', // ey esto es necesario para las sesiones -bynd
-                                body: JSON.stringify({ id: prod.id, cantidad: 1 })
+                                body: JSON.stringify({ producto_id: prod.id, cantidad: 1 })
                             });
                             showAlert('Producto agregado exitosamente', 'success');
                             loadCart();
