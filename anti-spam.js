@@ -32,6 +32,15 @@ class AntiSpamSystem {
                 const banned = JSON.parse(data);
                 this.bannedIPs = new Set(banned.ips || []);
                 console.log(`🛡️  [SECURITY] Cargadas ${this.bannedIPs.size} IPs baneadas`);
+            } else {
+                // chintrolas crear archivo si no existe -bynd
+                console.log('📝 [SECURITY] Creando archivo banned-ips.json...');
+                const emptyData = {
+                    ips: [],
+                    lastUpdated: new Date().toISOString()
+                };
+                fs.writeFileSync(BANNED_IPS_FILE, JSON.stringify(emptyData, null, 2));
+                console.log('✅ [SECURITY] Archivo banned-ips.json creado');
             }
         } catch (error) {
             console.error('❌ [ERROR] No se pudieron cargar IPs baneadas:', error.message);
