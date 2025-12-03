@@ -6,6 +6,9 @@ const session = require('express-session');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
+// aaa importar sistema anti-spam -bynd
+const { antiSpam, middleware: antiSpamMiddleware } = require('./anti-spam');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -24,66 +27,6 @@ const log = {
 log.info('🚀 Iniciando servidor Farmacias Tere...');
 log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-// chintrolas sistema anti-ataques con trolleo -bynd
-let attackDetected = false;
-let requestLog = {};
-let bannedIPs = new Set();
-
-// ey limpiar logs viejos cada 30 segundos -bynd
-setInterval(() => {
-    const now = Date.now();
-    for (const ip in requestLog) {
-        requestLog[ip] = requestLog[ip].filter(t => now - t < 30000);
-        if (requestLog[ip].length === 0) {
-            delete requestLog[ip];
-        }
-    }
-}, 30000);
-
-// vavavava middleware de detección de ataques -bynd
-app.use((req, res, next) => {
-    // aaa excluir la página de trolleo del sistema de detección -bynd
-    if (req.path === '/baduser.html.html' || req.path === '/gatov2.mp4') {
-        return next();
-    }
-    
-    const ip = req.ip || req.connection.remoteAddress;
-    const now = Date.now();
-    
-    // aaa si ya está baneado por ataque -bynd
-    if (bannedIPs.has(ip)) {
-        log.security(`🚫 IP baneada intentando acceder: ${ip}`);
-        return res.redirect('/baduser.html');
-    }
-    
-    // ey inicializar log del IP -bynd
-    if (!requestLog[ip]) {
-        requestLog[ip] = [];
-    }
-    
-    // chintrolas registrar request -bynd
-    requestLog[ip].push(now);
-    
-    // q chidoteee detectar ataque: más de 40 requests en 10 segundos -bynd
-    const recentRequests = requestLog[ip].filter(t => now - t < 10000);
-    
-    if (recentRequests.length > 40) {
-        attackDetected = true;
-        bannedIPs.add(ip);
-        
-        log.security('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        log.security('🚨 ATAQUE DETECTADO 🚨');
-        log.security(`IP: ${ip}`);
-        log.security(`Requests en 10s: ${recentRequests.length}`);
-        log.security('Acción: TROLLEADO CON NYANCAT 😹');
-        log.security('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        
-        return res.redirect('/baduser.html');
-    }
-    
-    next();
-});
-
 // ey middleware básico -bynd
 app.use(cors({
     origin: '*',
@@ -91,6 +34,14 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// chintrolas ACTIVAR SISTEMA ANTI-SPAM -bynd
+app.use(antiSpamMiddleware());
+
+log.info('🛡️  Sistema anti-spam activado');
+log.info('   → Lockdown permanente de IPs maliciosas');
+log.info('   → Detección: >50 requests/10s = BAN');
+log.info('   → Advertencia: >30 requests/10s');
 
 // q chidoteee logging de requests -bynd
 app.use((req, res, next) => {
@@ -803,10 +754,17 @@ const pedidoController = {
         }
         
         try {
+            // chintrolas calcular total -bynd
+            let totalCalculado = 0;
+            for (const item of carrito) {
+                totalCalculado += item.precio * item.cantidad;
+            }
+            
             const pedido = await Pedido.create(
                 req.session.userId, 
                 carrito, 
                 metodoPago, 
+                totalCalculado,
                 direccionEnvio
             );
             
@@ -889,31 +847,41 @@ app.delete('/api/cliente/carrito/:id', carritoController.eliminarDelCarrito);
 app.post('/api/cliente/pedido', pedidoController.crearPedido);
 app.get('/api/cliente/pedidos', pedidoController.obtenerPedidos);
 
-// q chidoteee ruta principal -bynd
+// q chidoteee endpoint de estadísticas de seguridad -bynd
+app.get('/api/admin/security/stats', (req, res) => {
+    const stats = antiSpam.getStats();
+    res.json({
+        ...stats,
+        bannedIPsList: Array.from(antiSpam.bannedIPs)
+    });
+});
+
+// fokeis ruta principal -bynd
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// fokeis manejo de rutas no encontradas -bynd
+// aaa manejo de rutas no encontradas -bynd
 app.use((req, res) => {
     log.warn('⚠️  Ruta no encontrada:', req.path);
     res.status(404).json({ error: 'Endpoint no encontrado' });
 });
 
-// aaa manejo de errores globales -bynd
+// ey manejo de errores globales -bynd
 app.use((err, req, res, next) => {
     log.error('💥 Error no manejado:', err.message);
     log.error(err.stack);
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// ey iniciar servidor -bynd
+// chintrolas iniciar servidor -bynd
 app.listen(PORT, () => {
     log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     log.success(`🚀 SERVIDOR INICIADO EXITOSAMENTE`);
     log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     log.info(`📍 URL: http://localhost:${PORT}`);
     log.info(`🌐 Entorno: ${process.env.NODE_ENV || 'development'}`);
-    log.info(`🛡️  Sistema anti-ataques: ACTIVO 😹`);
+    log.info(`🛡️  Sistema anti-spam: ACTIVO 😹`);
+    log.info(`📊 Stats: /api/admin/security/stats`);
     log.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
