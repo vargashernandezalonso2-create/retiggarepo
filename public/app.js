@@ -28,11 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerError = document.getElementById('register-error');
     const checkoutError = document.getElementById('checkout-error');
 
-    // ==========================================
-    // LÓGICA DE SELECCIÓN DE ROL (DESHABILITADA)
-    // chintrolas comentado porque ahora todos entran directo como clientes -bynd
-    // ==========================================
-    /*
     const roleModal = document.getElementById('role-modal');
     const roleStep1 = document.getElementById('role-step-1');
     const roleStepAdmin = document.getElementById('role-step-admin');
@@ -403,7 +398,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await fetchAPI('/api/cliente/carrito');
             
-            if (!data.items || data.items.length === 0) {
+            // chintrolas el servidor retorna data.carrito, no data.items -bynd
+            const items = data.carrito || data.items || [];
+            
+            if (items.length === 0) {
                 cartBody.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
                 cartFooter.style.display = 'none';
                 cartCountBubble.style.display = 'none';
@@ -414,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let total = 0;
             let itemCount = 0;
 
-            data.items.forEach(item => {
+            items.forEach(item => {
                 // chintrolas mapear item del carrito -bynd
                 const prod = mapearProducto(item.producto || item);
                 const cantidad = item.cantidad || 1;
