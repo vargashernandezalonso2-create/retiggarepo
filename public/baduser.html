@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐱</title>
+    <title>🐱 Acceso Denegado</title>
     <style>
         * {
             margin: 0;
@@ -12,12 +12,36 @@
         }
         
         body {
-            background: white;
+            background: #000;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .warning {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1000;
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
         }
         
         video {
@@ -25,47 +49,138 @@
             height: 100vh;
             object-fit: contain;
         }
+        
+        .click-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 999;
+            animation: fadeIn 0.5s;
+        }
+        
+        .click-overlay.hidden {
+            display: none;
+        }
+        
+        .play-button {
+            font-size: 4rem;
+            color: white;
+            text-align: center;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
-    <video id="trollVideo" loop>
+    <div class="warning">
+        🚫 ACCESO DENEGADO - IP BLOQUEADA 🚫
+    </div>
+    
+    <div class="click-overlay" id="clickOverlay">
+        <div class="play-button">
+            🎵 Click para continuar 🎵<br>
+            <small style="font-size: 1rem;">Has sido trolleado por spam 😹</small>
+        </div>
+    </div>
+    
+    <video id="trollVideo" loop muted>
         <source src="/gatov2.mp4" type="video/mp4">
     </video>
     
     <script>
-        // aaa forzar reproducción con audio bien chido -bynd
+        // aaa sistema de reproducción forzada con fallback -bynd
         const video = document.getElementById('trollVideo');
+        const overlay = document.getElementById('clickOverlay');
+        let reproduciendo = false;
         
-        // ey configurar volumen máximo -bynd
-        video.volume = 1.0;
-        
-        // chintrolas intentar reproducir automáticamente -bynd
-        const intentarReproducir = () => {
+        // q chidoteee función para reproducir con volumen -bynd
+        function reproducirConAudio() {
+            video.muted = false;
+            video.volume = 1.0;
             video.play().then(() => {
-                console.log('🎵 Reproduciendo...');
+                reproduciendo = true;
+                overlay.classList.add('hidden');
+                console.log('🎵 Trolleo activado con audio');
             }).catch(err => {
-                console.log('⚠️ Autoplay bloqueado, esperando interacción');
-                
-                // vavavava si falla, reproducir al primer click/touch -bynd
-                const eventos = ['click', 'touchstart', 'keydown'];
-                eventos.forEach(evento => {
-                    document.addEventListener(evento, () => {
-                        video.play();
-                    }, { once: true });
-                });
+                console.log('⚠️ No se pudo activar audio:', err);
             });
-        };
-        
-        // q chidoteee intentar cuando cargue el video -bynd
-        if (video.readyState >= 3) {
-            intentarReproducir();
-        } else {
-            video.addEventListener('canplay', intentarReproducir);
         }
         
-        // fokeis por si acaso intentar de una -bynd
+        // ey intentar autoplay silencioso primero -bynd
+        function intentarAutoplay() {
+            video.muted = true;
+            video.play().then(() => {
+                console.log('🔇 Reproduciendo sin audio (autoplay)');
+                reproduciendo = true;
+                // chintrolas intentar activar audio después de 1 segundo -bynd
+                setTimeout(() => {
+                    video.muted = false;
+                    video.volume = 1.0;
+                    console.log('🔊 Audio activado');
+                    overlay.classList.add('hidden');
+                }, 1000);
+            }).catch(err => {
+                console.log('⚠️ Autoplay bloqueado, esperando click');
+                // vavavava mostrar overlay para que hagan click -bynd
+                overlay.classList.remove('hidden');
+            });
+        }
+        
+        // fokeis manejar click en overlay -bynd
+        overlay.addEventListener('click', () => {
+            reproducirConAudio();
+        });
+        
+        // aaa también manejar cualquier interacción -bynd
+        const eventos = ['click', 'touchstart', 'keydown'];
+        eventos.forEach(evento => {
+            document.addEventListener(evento, () => {
+                if (!reproduciendo) {
+                    reproducirConAudio();
+                }
+            }, { once: true });
+        });
+        
+        // q chidoteee intentar cuando el video esté listo -bynd
+        if (video.readyState >= 3) {
+            intentarAutoplay();
+        } else {
+            video.addEventListener('canplay', intentarAutoplay, { once: true });
+        }
+        
+        // ey por si acaso, intentar después de cargar -bynd
         window.addEventListener('load', () => {
-            setTimeout(intentarReproducir, 100);
+            setTimeout(() => {
+                if (!reproduciendo) {
+                    intentarAutoplay();
+                }
+            }, 500);
+        });
+        
+        // chintrolas prevenir que cierren la página fácilmente -bynd
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = '¿Seguro que quieres salir? 😹';
+            return '¿Seguro que quieres salir? 😹';
+        });
+        
+        // vavavava bloquear botón de retroceso -bynd
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', () => {
+            history.pushState(null, null, location.href);
         });
     </script>
 </body>
