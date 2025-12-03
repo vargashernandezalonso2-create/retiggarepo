@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const switchToLogin = document.getElementById('switch-to-login');
     const btnLogout = document.getElementById('btn-logout');
     
-    // aaa función para pedir login directo -bynd
+    // aaa función para pedir login con modal -bynd
     window.requestLogin = function(mensajeAdvertencia = null) {
         // q chidoteee mostrar alerta si hay mensaje de advertencia -bynd
         if (mensajeAdvertencia) {
@@ -238,7 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // ey abrir modal de login directamente -bynd
-        openModal(loginModal);
+        if (loginModal) {
+            openModal(loginModal);
+        } else {
+            console.error('❌ Modal de login no encontrado');
+        }
     };
 
     if (btnShowLogin) { // O el ID que estés usando para el botón del header
