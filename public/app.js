@@ -1,14 +1,25 @@
+// aaa app.js con DEBUG MASIVO -bynd
+console.log('🚀 [APP] Iniciando aplicación...');
+
 // Estado global
 window.isUserAuthenticated = false;
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 [DOM] DOM Cargado completamente');
 
+    // chintrolas sistema de logging mejorado -bynd
     const log = {
-        warn: (msg) => console.warn(`⚠️ ${msg}`),
-        error: (msg) => console.error(`❌ ${msg}`),
-        info: (msg) => console.log(`ℹ️ ${msg}`)
+        success: (context, msg, ...args) => console.log(`✅ [${context}]`, msg, ...args),
+        error: (context, msg, ...args) => console.error(`❌ [${context}]`, msg, ...args),
+        warn: (context, msg, ...args) => console.warn(`⚠️  [${context}]`, msg, ...args),
+        info: (context, msg, ...args) => console.log(`ℹ️  [${context}]`, msg, ...args),
+        debug: (context, msg, ...args) => console.log(`🔍 [${context}]`, msg, ...args),
+        api: (method, url, data) => console.log(`📡 [API] ${method} ${url}`, data || '')
     };
 
+    // ey obtener elementos del DOM -bynd
+    console.log('🔍 [DOM] Buscando elementos...');
+    
     const productList = document.getElementById('lista-productos');
     const loginModal = document.getElementById('login-modal');
     const registerModal = document.getElementById('register-modal');
@@ -28,99 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerError = document.getElementById('register-error');
     const checkoutError = document.getElementById('checkout-error');
 
-    const roleModal = document.getElementById('role-modal');
-    const roleStep1 = document.getElementById('role-step-1');
-    const roleStepAdmin = document.getElementById('role-step-admin');
-    const btnRoleAdmin = document.getElementById('btn-role-admin');
-    const btnRoleClient = document.getElementById('btn-role-client');
-    const btnVerifyAdmin = document.getElementById('btn-verify-admin');
-    const btnBackRole = document.getElementById('btn-back-role');
-    const adminInput = document.getElementById('admin-key-input');
-    const adminError = document.getElementById('admin-error');
+    // vavavava verificar elementos críticos -bynd
+    log.debug('DOM', 'productList:', productList ? '✅' : '❌');
+    log.debug('DOM', 'loginModal:', loginModal ? '✅' : '❌');
+    log.debug('DOM', 'cartOverlay:', cartOverlay ? '✅' : '❌');
+    log.debug('DOM', 'cartBody:', cartBody ? '✅' : '❌');
 
-    // 1. Si elige CLIENTE
-    if(btnRoleClient) {
-        btnRoleClient.addEventListener('click', () => {
-            alert('Acceso de Cliente activado');
-            closeModal(roleModal);
-            // Habilitar funciones básicas (ocultar cosas de admin si las hubiera)
-            document.body.classList.add('role-client');
-            document.body.classList.remove('role-admin');
-        });
-    }
-
-    // 2. Si elige ADMINISTRADOR
-    if(btnRoleAdmin) {
-        btnRoleAdmin.addEventListener('click', () => {
-            roleStep1.style.display = 'none';
-            roleStepAdmin.style.display = 'block';
-            adminInput.value = '';
-            adminInput.focus();
-        });
-    }
-
-    // Volver atrás
-    if(btnBackRole) {
-        btnBackRole.addEventListener('click', () => {
-            roleStepAdmin.style.display = 'none';
-            roleStep1.style.display = 'block';
-            adminError.style.display = 'none';
-        });
-    }
-
-    // Verificar contraseña de ADMIN
-    if(btnVerifyAdmin) {
-        btnVerifyAdmin.addEventListener('click', verifyAdmin);
-    }
-    
-    // Permitir Enter en el input
-    if(adminInput) {
-        adminInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') verifyAdmin();
-        });
-    }
-
-    function verifyAdmin() {
-        const key = adminInput.value;
-        
-        // --- AQUÍ DEFINES TU CONTRASEÑA DE ADMIN ---
-        // En un sistema real, esto debería ser una llamada a fetch('/api/admin/login')
-        const PASSWORD_CORRECTO = "admin123"; 
-
-        if (key === PASSWORD_CORRECTO) {
-            alert('Acceso de Administrador concedido');
-            closeModal(roleModal);
-            document.body.classList.add('role-admin');
-            document.body.classList.remove('role-client');
-            
-            // Aquí podrías mostrar botones ocultos de gestión
-            console.log('Funciones avanzadas habilitadas');
-        } else {
-            adminError.style.display = 'block';
-            adminError.textContent = 'Contraseña incorrecta. Intenta nuevamente.';
-            
-            // Efecto de vibración en el input
-            adminInput.classList.add('error');
-            setTimeout(() => adminInput.classList.remove('error'), 500);
-        }
-    }
-    */
-    // ==========================================
-    // FIN LÓGICA ROL
-    // ==========================================
-
-    // aaa función helper para mapear productos de PostgreSQL -bynd
+    // q chidoteee función helper para mapear productos de PostgreSQL -bynd
     function mapearProducto(prod) {
-        return {
+        log.debug('MAPPER', 'Mapeando producto:', prod);
+        const mapped = {
             id: prod.id_producto || prod.id,
             nombre: prod.name_prod || prod.nombre,
             precio: prod.costo_uni || prod.precio,
             stock: prod.cantidad || prod.stock,
-            imagen_url: prod.imagen_url
+            imagen_url: prod.imagen_url || prod.img_url
         };
+        log.debug('MAPPER', 'Producto mapeado:', mapped);
+        return mapped;
     }
 
+    // fokeis función para mostrar alertas -bynd
     function showAlert(message, type = 'info') {
+        log.info('ALERT', `Mostrando alerta ${type}:`, message);
+        
         const alertIcons = {
             success: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
             danger: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
@@ -146,106 +88,128 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(alert);
         
         setTimeout(() => {
-            alert.style.animation = 'slideOutRight 0.3s ease-out forwards';
+            alert.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => alert.remove(), 300);
         }, 4000);
     }
 
+    // aaa función fetchAPI con debug -bynd
     async function fetchAPI(url, options = {}) {
+        log.api(options.method || 'GET', url, options.body ? 'con body' : 'sin body');
+        
         try {
-            const response = await fetch(url, options);
-            if (response.status === 401 && options.method !== 'GET' && !url.includes('/api/auth/check')) {
-                showAlert('Debes iniciar sesión para realizar esta acción.', 'warning');
-                openModal(loginModal);
-                throw new Error('No autorizado');
-            }
+            const response = await fetch(url, {
+                ...options,
+                credentials: 'include'
+            });
+            
+            log.debug('API', `Status: ${response.status} ${response.statusText}`);
+            
             const data = await response.json();
+            log.debug('API', 'Response data:', data);
+            
             if (!response.ok) {
-                throw new Error(data.error || response.statusText);
+                log.error('API', 'Error en response:', data);
+                throw new Error(data.error || data.mensaje || 'Error desconocido');
             }
+            
+            log.success('API', 'Request exitoso:', url);
             return data;
         } catch (error) {
-            console.error('Error en fetchAPI:', error.message);
+            log.error('API', 'Error en fetch:', error.message);
             throw error;
         }
     }
 
+    // ey funciones de modal -bynd
     function openModal(modal) {
-        if (!modal) return;
-        modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('active'), 10);
+        if (!modal) {
+            log.error('MODAL', 'Modal no existe');
+            return;
+        }
+        log.info('MODAL', 'Abriendo modal:', modal.id);
+        modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
 
     function closeModal(modal) {
         if (!modal) return;
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            if (!cartOverlay.classList.contains('active')) {
-                document.body.style.overflow = 'auto';
-            }
-        }, 300);
-    }
-    
-    function updateAuthUI(data) {
-        if (data.autenticado) {
-            navAuth.style.display = 'none';
-            userInfo.style.display = 'flex';
-            userName.textContent = `Hola, ${data.usuario.nombre}`;
-        } else {
-            navAuth.style.display = 'flex';
-            userInfo.style.display = 'none';
-            userName.textContent = '';
-        }
+        log.info('MODAL', 'Cerrando modal:', modal.id);
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
     }
 
+    // chintrolas verificar autenticación al cargar -bynd
     (async function checkAuthStatus() {
+        log.info('AUTH', '🔐 Verificando estado de autenticación...');
+        
         try {
             const data = await fetchAPI('/api/auth/check');
-            // Actualizar flag global para que otras funciones lo consulten
-            window.isUserAuthenticated = !!data.autenticado;
-            updateAuthUI(data);
-            if (data.autenticado) {
+            log.debug('AUTH', 'Respuesta de checkAuth:', data);
+            
+            if (data.autenticado && data.usuario) {
+                log.success('AUTH', 'Usuario autenticado:', data.usuario.email);
+                window.isUserAuthenticated = true;
+                
+                if (navAuth) navAuth.style.display = 'none';
+                if (userInfo) {
+                    userInfo.style.display = 'flex';
+                    if (userName) userName.textContent = data.usuario.nombre || data.usuario.email.split('@')[0];
+                }
+                
                 loadCart();
+            } else {
+                log.info('AUTH', 'Usuario NO autenticado');
+                window.isUserAuthenticated = false;
+                
+                if (navAuth) navAuth.style.display = 'flex';
+                if (userInfo) userInfo.style.display = 'none';
             }
         } catch (error) {
-            console.log('Usuario no autenticado.');
+            log.error('AUTH', 'Error verificando autenticación:', error.message);
             window.isUserAuthenticated = false;
-            updateAuthUI({ autenticado: false });
         }
     })();
-    
-    // chintrolas validar elementos antes de agregar listeners -bynd
+
+    // vavavava botones de auth -bynd
     const btnShowLogin = document.getElementById('btn-show-login');
     const btnCloseLogin = document.getElementById('btn-close-login');
-    const switchToRegister = document.getElementById('switch-to-register');
     const btnShowRegister = document.getElementById('btn-show-register');
     const btnCloseRegister = document.getElementById('btn-close-register');
+    const switchToRegister = document.getElementById('switch-to-register');
     const switchToLogin = document.getElementById('switch-to-login');
     const btnLogout = document.getElementById('btn-logout');
     
-    // aaa función para pedir login con modal -bynd
+    // q chidoteee función para pedir login -bynd
     window.requestLogin = function(mensajeAdvertencia = null) {
-        // q chidoteee mostrar alerta si hay mensaje de advertencia -bynd
+        log.info('AUTH', 'requestLogin llamado con mensaje:', mensajeAdvertencia);
+        
         if (mensajeAdvertencia) {
             showAlert(mensajeAdvertencia, 'warning');
         }
         
-        // ey abrir modal de login directamente -bynd
         if (loginModal) {
             openModal(loginModal);
         } else {
-            console.error('❌ Modal de login no encontrado');
+            log.error('AUTH', 'loginModal no encontrado!');
         }
     };
 
-    if (btnShowLogin) { // O el ID que estés usando para el botón del header
-        btnShowLogin.addEventListener('click', () => window.requestLogin(null));
+    // fokeis eventos de modales -bynd
+    if (btnShowLogin) {
+        log.debug('AUTH', 'Registrando evento btnShowLogin');
+        btnShowLogin.addEventListener('click', () => {
+            log.info('AUTH', 'Click en btnShowLogin');
+            window.requestLogin(null);
+        });
+    } else {
+        log.warn('AUTH', 'btnShowLogin no encontrado');
     }
+    
     if (btnCloseLogin) btnCloseLogin.addEventListener('click', () => closeModal(loginModal));
     if (switchToRegister) {
         switchToRegister.addEventListener('click', () => { 
+            log.info('AUTH', 'Cambiando a registro');
             closeModal(loginModal); 
             openModal(registerModal); 
         });
@@ -254,157 +218,213 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCloseRegister) btnCloseRegister.addEventListener('click', () => closeModal(registerModal));
     if (switchToLogin) {
         switchToLogin.addEventListener('click', () => { 
+            log.info('AUTH', 'Cambiando a login');
             closeModal(registerModal); 
             openModal(loginModal); 
         });
     }
-    if (loginModal) loginModal.addEventListener('click', (e) => e.target === loginModal && closeModal(loginModal));
-    if (registerModal) registerModal.addEventListener('click', (e) => e.target === registerModal && closeModal(registerModal));
 
-    // ey validar formularios antes de agregar listeners -bynd
+    // aaa login form -bynd
     if (loginForm) {
+        log.debug('AUTH', 'Registrando form de login');
+        
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            log.info('AUTH', '📝 Procesando login...');
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            log.debug('AUTH', 'Email:', email);
+            log.debug('AUTH', 'Password length:', password.length);
+            
             if (loginError) loginError.style.display = 'none';
             
-            const submitBtn = loginForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Iniciando sesión...';
-            }
-            
             try {
-                const emailInput = document.getElementById('login-email');
-                const passwordInput = document.getElementById('login-password');
-                
-                if (!emailInput || !passwordInput) {
-                    throw new Error('Campos de formulario no encontrados');
-                }
-                
                 const data = await fetchAPI('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        email: emailInput.value, 
-                        password: passwordInput.value 
-                    })
+                    body: JSON.stringify({ email, password })
                 });
-                showAlert(`¡Bienvenido, ${data.usuario.nombre}!`, 'success');
-                setTimeout(() => window.location.reload(), 1000);
+                
+                log.success('AUTH', 'Login exitoso!', data);
+                
+                window.isUserAuthenticated = true;
+                
+                if (navAuth) navAuth.style.display = 'none';
+                if (userInfo) {
+                    userInfo.style.display = 'flex';
+                    if (userName) userName.textContent = data.usuario.nombre || email.split('@')[0];
+                }
+                
+                closeModal(loginModal);
+                showAlert('¡Bienvenido! ' + (data.usuario.nombre || email), 'success');
+                loginForm.reset();
+                
+                loadCart();
+                
             } catch (error) {
+                log.error('AUTH', 'Error en login:', error.message);
                 if (loginError) {
-                    loginError.textContent = error.message;
                     loginError.style.display = 'block';
+                    loginError.textContent = error.message;
                 }
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Iniciar Sesión';
-                }
+                showAlert('Error al iniciar sesión: ' + error.message, 'danger');
             }
         });
+    } else {
+        log.error('AUTH', 'loginForm no encontrado!');
     }
 
+    // ey register form -bynd
     if (registerForm) {
+        log.debug('AUTH', 'Registrando form de registro');
+        
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            log.info('AUTH', '📝 Procesando registro...');
+            
+            const nombre = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+            
+            log.debug('AUTH', 'Datos de registro:', { nombre, email, passwordLength: password.length });
+            
             if (registerError) registerError.style.display = 'none';
             
-            const submitBtn = registerForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Creando cuenta...';
+            if (password !== passwordConfirm) {
+                log.error('AUTH', 'Contraseñas no coinciden');
+                if (registerError) {
+                    registerError.style.display = 'block';
+                    registerError.textContent = 'Las contraseñas no coinciden';
+                }
+                return;
             }
             
             try {
-                const nombreInput = document.getElementById('register-nombre');
-                const emailInput = document.getElementById('register-email');
-                const passwordInput = document.getElementById('register-password');
-                
-                if (!nombreInput || !emailInput || !passwordInput) {
-                    throw new Error('Campos de formulario no encontrados');
-                }
-                
                 const data = await fetchAPI('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        nombre: nombreInput.value,
-                        email: emailInput.value,
-                        password: passwordInput.value
-                    })
+                    body: JSON.stringify({ nombre, email, password })
                 });
-                showAlert(`¡Registro exitoso, ${data.usuario.nombre}!`, 'success');
-                setTimeout(() => window.location.reload(), 1000);
+                
+                log.success('AUTH', 'Registro exitoso!', data);
+                
+                window.isUserAuthenticated = true;
+                
+                if (navAuth) navAuth.style.display = 'none';
+                if (userInfo) {
+                    userInfo.style.display = 'flex';
+                    if (userName) userName.textContent = nombre;
+                }
+                
+                closeModal(registerModal);
+                showAlert('¡Cuenta creada exitosamente! Bienvenido, ' + nombre, 'success');
+                registerForm.reset();
+                
+                loadCart();
+                
             } catch (error) {
+                log.error('AUTH', 'Error en registro:', error.message);
                 if (registerError) {
-                    registerError.textContent = error.message;
                     registerError.style.display = 'block';
+                    registerError.textContent = error.message;
                 }
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Crear Cuenta';
-                }
+                showAlert('Error al registrarse: ' + error.message, 'danger');
             }
         });
+    } else {
+        log.error('AUTH', 'registerForm no encontrado!');
     }
 
+    // chintrolas logout -bynd
     if (btnLogout) {
+        log.debug('AUTH', 'Registrando btnLogout');
+        
         btnLogout.addEventListener('click', async () => {
+            log.info('AUTH', '👋 Cerrando sesión...');
+            
             try {
                 await fetchAPI('/api/auth/logout', { method: 'POST' });
-                showAlert('Sesión cerrada.', 'info');
-                setTimeout(() => window.location.reload(), 1000);
-            } catch (error) { 
-                showAlert(`Error: ${error.message}`, 'danger'); 
+                
+                log.success('AUTH', 'Sesión cerrada');
+                
+                window.isUserAuthenticated = false;
+                
+                if (navAuth) navAuth.style.display = 'flex';
+                if (userInfo) userInfo.style.display = 'none';
+                
+                showAlert('Sesión cerrada correctamente', 'success');
+                
+                if (cartBody) cartBody.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
+                if (cartFooter) cartFooter.style.display = 'none';
+                if (cartCountBubble) cartCountBubble.style.display = 'none';
+                
+            } catch (error) {
+                log.error('AUTH', 'Error cerrando sesión:', error.message);
+                showAlert('Error al cerrar sesión', 'danger');
             }
         });
+    } else {
+        log.warn('AUTH', 'btnLogout no encontrado');
     }
 
+    // vavavava funciones del carrito -bynd
     function openCart() {
-        cartOverlay.style.display = 'block';
-        setTimeout(() => cartOverlay.classList.add('active'), 10);
-        document.body.style.overflow = 'hidden';
+        log.info('CART', '🛒 Abriendo carrito...');
+        if (cartOverlay) {
+            cartOverlay.classList.add('show');
+            loadCart();
+        } else {
+            log.error('CART', 'cartOverlay no existe!');
+        }
     }
 
     function closeCart() {
-        cartOverlay.classList.remove('active');
-        setTimeout(() => {
-            cartOverlay.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }, 300);
+        log.info('CART', 'Cerrando carrito');
+        if (cartOverlay) cartOverlay.classList.remove('show');
     }
 
-    // aaa validar que los elementos existan antes de agregar listeners -bynd
     const btnCart = document.getElementById('btn-show-cart');
     const btnCloseCart = document.getElementById('btn-close-cart');
     
     if (btnCart) {
+        log.debug('CART', 'Registrando btnCart');
         btnCart.addEventListener('click', openCart);
     } else {
-        log.warn('Botón #btn-cart no encontrado');
+        log.warn('CART', 'btnCart no encontrado');
     }
     
-    if (btnCloseCart) {
-        btnCloseCart.addEventListener('click', closeCart);
-    }
-    
+    if (btnCloseCart) btnCloseCart.addEventListener('click', closeCart);
     if (cartOverlay) {
         cartOverlay.addEventListener('click', (e) => {
             if (e.target === cartOverlay) closeCart();
         });
     }
 
+    // q chidoteee cargar carrito -bynd
     async function loadCart() {
+        log.info('CART', '📦 Cargando carrito...');
+        
+        if (!cartBody) {
+            log.error('CART', 'cartBody no existe!');
+            return;
+        }
+        
         try {
             const data = await fetchAPI('/api/cliente/carrito');
+            log.debug('CART', 'Data recibida:', data);
             
-            // chintrolas el servidor retorna data.carrito, no data.items -bynd
+            // fokeis el servidor retorna data.carrito -bynd
             const items = data.carrito || data.items || [];
+            log.debug('CART', 'Items en carrito:', items.length);
             
             if (items.length === 0) {
+                log.info('CART', 'Carrito vacío');
                 cartBody.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
-                cartFooter.style.display = 'none';
-                cartCountBubble.style.display = 'none';
+                if (cartFooter) cartFooter.style.display = 'none';
+                if (cartCountBubble) cartCountBubble.style.display = 'none';
                 return;
             }
 
@@ -412,11 +432,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let total = 0;
             let itemCount = 0;
 
-            items.forEach(item => {
-                // chintrolas mapear item del carrito -bynd
-                const prod = mapearProducto(item.producto || item);
+            items.forEach((item, index) => {
+                log.debug('CART', `Item ${index + 1}:`, item);
+                
                 const cantidad = item.cantidad || 1;
-                const precioUnitario = parseFloat(prod.precio || 0);
+                const precioUnitario = parseFloat(item.precio || 0);
                 const subtotal = precioUnitario * cantidad;
                 
                 total += subtotal;
@@ -425,41 +445,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
                 itemEl.innerHTML = `
-                    <img src="${prod.imagen_url || 'https://via.placeholder.com/60'}" alt="${prod.nombre}">
-                    <div class="cart-item-info">
-                        <h4>${prod.nombre}</h4>
-                        <p class="cart-item-price">$${precioUnitario.toFixed(2)} × ${cantidad}</p>
+                    <img src="${item.imagen_url || 'https://via.placeholder.com/60'}" alt="${item.nombre}">
+                    <div class="cart-item-details">
+                        <h4>${item.nombre}</h4>
+                        <div class="cart-item-price">$${precioUnitario.toFixed(2)}</div>
                     </div>
-                    <div class="cart-item-actions">
-                        <button class="btn-qty-decrease" data-item-id="${item.id}" data-producto-id="${prod.id}">
-                            <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                        </button>
-                        <span class="cart-item-quantity">${cantidad}</span>
-                        <button class="btn-qty-increase" data-item-id="${item.id}" data-producto-id="${prod.id}">
-                            <svg style="width: 14px; height: 14px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                        </button>
-                        <button class="btn-cart-remove" data-item-id="${item.id}">
-                            <svg style="width: 16px; height: 16px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            </svg>
-                        </button>
+                    <div class="cart-item-qty">
+                        <button class="btn-qty-decrease" data-item-id="${item.id}">−</button>
+                        <span>${cantidad}</span>
+                        <button class="btn-qty-increase" data-producto-id="${item.id}">+</button>
                     </div>
+                    <div class="cart-item-subtotal">$${subtotal.toFixed(2)}</div>
+                    <button class="btn-remove-item" data-item-id="${item.id}">🗑️</button>
                 `;
                 cartBody.appendChild(itemEl);
             });
 
-            cartSubtotal.textContent = `$${total.toFixed(2)}`;
-            cartFooter.style.display = 'block';
-            cartCountBubble.textContent = itemCount;
-            cartCountBubble.style.display = 'flex';
+            log.success('CART', `Carrito cargado: ${itemCount} items, Total: $${total.toFixed(2)}`);
+            
+            if (cartSubtotal) cartSubtotal.textContent = `$${total.toFixed(2)}`;
+            if (cartFooter) cartFooter.style.display = 'block';
+            if (cartCountBubble) {
+                cartCountBubble.textContent = itemCount;
+                cartCountBubble.style.display = 'flex';
+            }
 
+            // aaa eventos de botones del carrito -bynd
             document.querySelectorAll('.btn-qty-increase').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const productoId = e.currentTarget.dataset.productoId;
+                    log.info('CART', 'Aumentando cantidad:', productoId);
+                    
                     try {
                         await fetchAPI('/api/cliente/carrito/agregar', {
                             method: 'POST',
@@ -468,6 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         loadCart();
                     } catch (error) {
+                        log.error('CART', 'Error aumentando cantidad:', error.message);
                         showAlert(error.message, 'danger');
                     }
                 });
@@ -476,109 +493,86 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.btn-qty-decrease').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const itemId = e.currentTarget.dataset.itemId;
-                    try {
-                        await fetchAPI(`/api/cliente/carrito/${itemId}/decrementar`, {
-                            method: 'PUT'
-                        });
-                        loadCart();
-                    } catch (error) {
-                        showAlert(error.message, 'danger');
+                    log.info('CART', 'Disminuyendo cantidad:', itemId);
+                    
+                    const currentItem = items.find(i => i.id == itemId);
+                    if (currentItem && currentItem.cantidad > 1) {
+                        try {
+                            await fetchAPI(`/api/cliente/carrito/actualizar/${itemId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ cantidad: currentItem.cantidad - 1 })
+                            });
+                            loadCart();
+                        } catch (error) {
+                            log.error('CART', 'Error disminuyendo:', error.message);
+                            showAlert(error.message, 'danger');
+                        }
+                    } else {
+                        // chintrolas si es 1, eliminar -bynd
+                        try {
+                            await fetchAPI(`/api/cliente/carrito/${itemId}`, {
+                                method: 'DELETE'
+                            });
+                            loadCart();
+                        } catch (error) {
+                            log.error('CART', 'Error eliminando:', error.message);
+                            showAlert(error.message, 'danger');
+                        }
                     }
                 });
             });
 
-            document.querySelectorAll('.btn-cart-remove').forEach(btn => {
+            document.querySelectorAll('.btn-remove-item').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const itemId = e.currentTarget.dataset.itemId;
+                    log.info('CART', 'Eliminando item:', itemId);
+                    
                     try {
                         await fetchAPI(`/api/cliente/carrito/${itemId}`, {
                             method: 'DELETE'
                         });
-                        showAlert('Producto eliminado del carrito', 'info');
+                        showAlert('Producto eliminado del carrito', 'success');
                         loadCart();
                     } catch (error) {
+                        log.error('CART', 'Error eliminando:', error.message);
                         showAlert(error.message, 'danger');
                     }
                 });
             });
-
+            
         } catch (error) {
-            console.error('Error al cargar carrito:', error);
-            cartBody.innerHTML = '<p class="cart-empty">Error al cargar el carrito.</p>';
-            cartFooter.style.display = 'none';
+            log.error('CART', 'Error cargando carrito:', error.message);
+            if (cartBody) cartBody.innerHTML = '<p class="cart-empty">Error al cargar el carrito.</p>';
         }
     }
 
-    window.loadCart = loadCart;
-
-    // vavavava validar checkout form -bynd
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (checkoutError) checkoutError.style.display = 'none';
-
-            const metodoPagoInput = document.querySelector('input[name="metodoPago"]:checked');
-            const direccionEnvioInput = document.getElementById('direccionEnvio');
-            const btn = checkoutForm.querySelector('button[type="submit"]');
-            
-            if (!metodoPagoInput || !direccionEnvioInput) {
-                if (checkoutError) {
-                    checkoutError.textContent = 'Por favor completa todos los campos';
-                    checkoutError.style.display = 'block';
-                }
-                return;
-            }
-            
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Procesando...';
-            }
-
-            try {
-                const resultado = await fetchAPI('/api/cliente/pedido', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        metodoPago: metodoPagoInput.value, 
-                        direccionEnvio: direccionEnvioInput.value 
-                    })
-                });
-                
-                showAlert(`¡Pedido #${resultado.pedido.id} realizado con éxito!`, 'success');
-                closeCart();
-                loadCart();
-                checkoutForm.reset();
-
-            } catch (error) {
-                if (checkoutError) {
-                    checkoutError.textContent = `Error: ${error.message}`;
-                    checkoutError.style.display = 'block';
-                }
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Confirmar Pedido';
-                }
-            }
-        });
-    }
-
-    // q chidoteee cargar productos con mapeo de PostgreSQL -bynd
+    // ey cargar productos -bynd
     (async function loadProducts() {
-        if (!productList) return;
+        log.info('PRODUCTS', '📦 Cargando productos...');
+        
+        if (!productList) {
+            log.error('PRODUCTS', 'productList no existe!');
+            return;
+        }
+        
+        productList.innerHTML = '<p class="loading">Cargando productos...</p>';
         
         try {
             const productos = await fetchAPI('/api/cliente/productos');
+            log.debug('PRODUCTS', 'Productos recibidos:', productos.length);
             
-            if (productos.length === 0) {
-                productList.innerHTML = '<p class="loading">No se encontraron productos.</p>';
+            if (!productos || productos.length === 0) {
+                log.warn('PRODUCTS', 'No hay productos');
+                productList.innerHTML = '<p class="loading">No hay productos disponibles.</p>';
                 return;
             }
             
             productList.innerHTML = '';
             
             productos.forEach((prodRaw, index) => {
-                // aaa mapear producto de PostgreSQL -bynd
+                log.debug('PRODUCTS', `Producto ${index + 1}:`, prodRaw);
+                
                 const prod = mapearProducto(prodRaw);
                 
                 const card = document.createElement('div');
@@ -586,8 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.style.animationDelay = `${index * 0.05}s`;
                 
                 const badgeHTML = Math.random() > 0.7 ? '<span class="badge badge-danger">-20%</span>' : '';
-                
-                // chintrolas convertir precio a número para evitar NaN -bynd
                 const precioNumerico = parseFloat(prod.precio || 0);
                 const precioFormateado = isNaN(precioNumerico) ? '0.00' : precioNumerico.toFixed(2);
                 
@@ -610,13 +602,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 productList.appendChild(card);
 
-                // Agregar protección al botón "Agregar" para requerir autenticación
                 const addBtn = card.querySelector('.btn-add-to-cart');
                 if (addBtn) {
                     addBtn.addEventListener('click', async (e) => {
                         e.preventDefault();
+                        log.info('PRODUCTS', 'Click en agregar producto:', prod.id);
 
                         if (!window.isUserAuthenticated) {
+                            log.warn('PRODUCTS', 'Usuario no autenticado, pidiendo login');
                             window.requestLogin('⚠️ Para continuar con la compra necesitas iniciar sesión o registrarte.');
                             return;
                         }
@@ -627,149 +620,26 @@ document.addEventListener('DOMContentLoaded', () => {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ producto_id: prod.id, cantidad: 1 })
                             });
+                            log.success('PRODUCTS', 'Producto agregado al carrito');
                             showAlert('Producto agregado exitosamente', 'success');
                             loadCart();
                         } catch (err) {
+                            log.error('PRODUCTS', 'Error agregando:', err.message);
                             showAlert(err.message, 'danger');
                         }
                     });
                 }
             });
             
+            log.success('PRODUCTS', `${productos.length} productos cargados exitosamente`);
+            
         } catch (error) {
+            log.error('PRODUCTS', 'Error fatal cargando productos:', error.message);
             productList.innerHTML = `<p class="loading">Error al cargar productos: ${error.message}</p>`;
         }
     })();
 
-    const btnAccesibilidad = document.getElementById('btn-accesibilidad');
-
-    if (btnAccesibilidad) {
-        console.log('✅ Botón accesibilidad encontrado');
-        
-        const modoGuardado = localStorage.getItem('modo-accesible');
-        console.log('Modo guardado:', modoGuardado);
-        
-        if (modoGuardado === 'true') {
-            document.body.classList.add('high-contrast');
-            console.log('✅ Modo alto contraste activado desde localStorage');
-        }
-
-        btnAccesibilidad.addEventListener('click', function() {
-            console.log('🖱️ Click en botón accesibilidad');
-            
-            const isActive = document.body.classList.toggle('high-contrast');
-            localStorage.setItem('modo-accesible', isActive);
-            
-            console.log('Estado actual:', isActive);
-            
-            const mensaje = isActive ? 
-                'Modo de alto contraste activado ✅' : 
-                'Modo de alto contraste desactivado ❌';
-            
-            showAlert(mensaje, 'info');
-        });
-    } else {
-        console.error('❌ Botón accesibilidad NO encontrado');
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    const header = document.getElementById('main-header');
-    if (header) {
-        let lastScroll = 0;
-        
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            
-            if (currentScroll > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-            
-            lastScroll = currentScroll;
-        });
-    }
-
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('.animate-fadeInUp').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-        observer.observe(el);
-    });
-
-    const emailInputs = document.querySelectorAll('input[type="email"]');
-    emailInputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (this.value && !emailRegex.test(this.value)) {
-                this.classList.add('error');
-                this.classList.remove('success');
-            } else if (this.value) {
-                this.classList.add('success');
-                this.classList.remove('error');
-            }
-        });
-    });
-
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-    passwordInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            if (this.value.length > 0 && this.value.length < 6) {
-                this.classList.add('error');
-                this.classList.remove('success');
-            } else if (this.value.length >= 6) {
-                this.classList.add('success');
-                this.classList.remove('error');
-            }
-        });
-    });
-
-    function showLoading(element) {
-        element.style.opacity = '0.6';
-        element.style.pointerEvents = 'none';
-    }
-
-    function hideLoading(element) {
-        element.style.opacity = '1';
-        element.style.pointerEvents = 'auto';
-    }
-
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        console.log('Modo oscuro detectado en el sistema');
-    }
-
-    const hours = new Date().getHours();
-    let greeting = 'Bienvenido';
-    
-    if (hours < 12) greeting = 'Buenos días';
-    else if (hours < 19) greeting = 'Buenas tardes';
-    else greeting = 'Buenas noches';
-
-    console.log(`${greeting} a Farmacia PO's`);
+    log.success('APP', '✅ Aplicación inicializada completamente');
 });
+
+console.log('📄 [APP] Script cargado');
