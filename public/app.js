@@ -128,14 +128,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         log.info('MODAL', 'Abriendo modal:', modal.id);
-        modal.classList.add('show');
+        modal.classList.add('active'); // chintrolas CSS usa 'active' no 'show' -bynd
         document.body.style.overflow = 'hidden';
     }
 
     function closeModal(modal) {
         if (!modal) return;
         log.info('MODAL', 'Cerrando modal:', modal.id);
-        modal.classList.remove('show');
+        modal.classList.remove('active'); // chintrolas CSS usa 'active' no 'show' -bynd
         document.body.style.overflow = '';
     }
 
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openCart() {
         log.info('CART', '🛒 Abriendo carrito...');
         if (cartOverlay) {
-            cartOverlay.classList.add('show');
+            cartOverlay.classList.add('active'); // chintrolas CSS usa 'active' no 'show' -bynd
             loadCart();
         } else {
             log.error('CART', 'cartOverlay no existe!');
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeCart() {
         log.info('CART', 'Cerrando carrito');
-        if (cartOverlay) cartOverlay.classList.remove('show');
+        if (cartOverlay) cartOverlay.classList.remove('active'); // chintrolas CSS usa 'active' no 'show' -bynd
     }
 
     const btnCart = document.getElementById('btn-show-cart');
