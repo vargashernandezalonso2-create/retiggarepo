@@ -101,86 +101,170 @@
     </video>
     
     <script>
-        // aaa sistema de reproducción forzada con fallback -bynd
+        // aaa sistema de reproducción ULTRA agresivo para Chrome/Edge/Opera -bynd
         const video = document.getElementById('trollVideo');
         const overlay = document.getElementById('clickOverlay');
         let reproduciendo = false;
+        let intentosAutoplay = 0;
         
         // q chidoteee función para reproducir con volumen -bynd
         function reproducirConAudio() {
             video.muted = false;
             video.volume = 1.0;
-            video.play().then(() => {
-                reproduciendo = true;
-                overlay.classList.add('hidden');
-                console.log('🎵 Trolleo activado con audio');
-            }).catch(err => {
-                console.log('⚠️ No se pudo activar audio:', err);
-            });
-        }
-        
-        // ey intentar autoplay silencioso primero -bynd
-        function intentarAutoplay() {
-            video.muted = true;
-            video.play().then(() => {
-                console.log('🔇 Reproduciendo sin audio (autoplay)');
-                reproduciendo = true;
-                // chintrolas intentar activar audio después de 1 segundo -bynd
-                setTimeout(() => {
-                    video.muted = false;
-                    video.volume = 1.0;
-                    console.log('🔊 Audio activado');
+            
+            const playPromise = video.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    reproduciendo = true;
                     overlay.classList.add('hidden');
-                }, 1000);
-            }).catch(err => {
-                console.log('⚠️ Autoplay bloqueado, esperando click');
-                // vavavava mostrar overlay para que hagan click -bynd
-                overlay.classList.remove('hidden');
-            });
+                    console.log('🎵 Trolleo activado con audio');
+                }).catch(err => {
+                    console.log('⚠️ No se pudo activar audio:', err);
+                    // chintrolas si falla, al menos reproducir silenciado -bynd
+                    video.muted = true;
+                    video.play();
+                    // vavavava y seguir intentando activar audio -bynd
+                    setTimeout(intentarActivarAudio, 500);
+                });
+            }
         }
         
-        // fokeis manejar click en overlay -bynd
-        overlay.addEventListener('click', () => {
-            reproducirConAudio();
-        });
+        // ey función para intentar activar audio repetidamente -bynd
+        function intentarActivarAudio() {
+            if (!video.muted) return; // ya está con audio
+            
+            video.muted = false;
+            video.volume = 1.0;
+            
+            setTimeout(() => {
+                if (video.muted && intentosAutoplay < 20) {
+                    intentosAutoplay++;
+                    intentarActivarAudio();
+                }
+            }, 500);
+        }
         
-        // aaa también manejar cualquier interacción -bynd
-        const eventos = ['click', 'touchstart', 'keydown'];
-        eventos.forEach(evento => {
-            document.addEventListener(evento, () => {
-                if (!reproduciendo) {
+        // fokeis estrategia multi-fase -bynd
+        function intentarAutoplay() {
+            // FASE 1: Intentar con audio (casi nunca funciona en Chrome)
+            video.muted = false;
+            video.volume = 1.0;
+            
+            const tryWithSound = video.play();
+            
+            if (tryWithSound !== undefined) {
+                tryWithSound.then(() => {
+                    console.log('🔊 Autoplay con audio exitoso (raro)');
+                    reproduciendo = true;
+                    overlay.classList.add('hidden');
+                }).catch(() => {
+                    // FASE 2: Intentar silenciado
+                    console.log('🔇 Intentando modo silencioso...');
+                    video.muted = true;
+                    
+                    video.play().then(() => {
+                        console.log('✅ Reproduciendo silenciado');
+                        reproduciendo = true;
+                        
+                        // chintrolas intentar activar audio gradualmente -bynd
+                        setTimeout(() => {
+                            intentarActivarAudio();
+                            overlay.classList.add('hidden');
+                        }, 300);
+                        
+                    }).catch(() => {
+                        // FASE 3: Necesita interacción del usuario
+                        console.log('⚠️ Necesita click del usuario');
+                        overlay.classList.remove('hidden');
+                    });
+                });
+            }
+        }
+        
+        // aaa eventos de interacción del usuario -bynd
+        function setupUserInteraction() {
+            const eventos = ['click', 'touchstart', 'touchend', 'keydown', 'keyup', 'mousedown'];
+            
+            eventos.forEach(evento => {
+                overlay.addEventListener(evento, () => {
+                    reproducirConAudio();
+                }, { once: false }); // vavavava no usar once para más oportunidades -bynd
+                
+                // q chidoteee también en document para capturar todo -bynd
+                document.addEventListener(evento, () => {
+                    if (!reproduciendo || video.paused) {
+                        reproducirConAudio();
+                    }
+                }, { once: false });
+            });
+            
+            // fokeis también en movimiento del mouse -bynd
+            document.addEventListener('mousemove', function activarConMouse() {
+                if (!reproduciendo || video.paused) {
                     reproducirConAudio();
                 }
+                document.removeEventListener('mousemove', activarConMouse);
             }, { once: true });
-        });
+        }
         
-        // q chidoteee intentar cuando el video esté listo -bynd
+        // ey setup inicial -bynd
+        setupUserInteraction();
+        
+        // chintrolas intentar cuando el video esté listo -bynd
         if (video.readyState >= 3) {
             intentarAutoplay();
         } else {
             video.addEventListener('canplay', intentarAutoplay, { once: true });
         }
         
-        // ey por si acaso, intentar después de cargar -bynd
+        // vavavava múltiples intentos después de cargar -bynd
         window.addEventListener('load', () => {
-            setTimeout(() => {
-                if (!reproduciendo) {
-                    intentarAutoplay();
-                }
-            }, 500);
+            setTimeout(intentarAutoplay, 100);
+            setTimeout(intentarAutoplay, 500);
+            setTimeout(intentarAutoplay, 1000);
         });
         
-        // chintrolas prevenir que cierren la página fácilmente -bynd
+        // q chidoteee si el video se pausa, volver a reproducir -bynd
+        video.addEventListener('pause', () => {
+            if (reproduciendo) {
+                console.log('⚠️ Video pausado, reactivando...');
+                setTimeout(() => {
+                    video.play().catch(() => {
+                        overlay.classList.remove('hidden');
+                    });
+                }, 100);
+            }
+        });
+        
+        // fokeis prevenir que cierren la página fácilmente -bynd
         window.addEventListener('beforeunload', (e) => {
             e.preventDefault();
             e.returnValue = '¿Seguro que quieres salir? 😹';
             return '¿Seguro que quieres salir? 😹';
         });
         
-        // vavavava bloquear botón de retroceso -bynd
+        // aaa bloquear botón de retroceso -bynd
         history.pushState(null, null, location.href);
         window.addEventListener('popstate', () => {
             history.pushState(null, null, location.href);
+        });
+        
+        // chintrolas prevenir clic derecho -bynd
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            reproducirConAudio(); // vavavava aprovechar para intentar reproducir -bynd
+        });
+        
+        // ey prevenir teclas de escape comunes -bynd
+        document.addEventListener('keydown', (e) => {
+            // ESC, F5, Ctrl+W, Alt+F4
+            if (e.key === 'Escape' || e.key === 'F5' || 
+                (e.ctrlKey && e.key === 'w') || 
+                (e.altKey && e.key === 'F4')) {
+                e.preventDefault();
+                reproducirConAudio(); // q chidoteee aprovechar el input -bynd
+            }
         });
     </script>
 </body>
