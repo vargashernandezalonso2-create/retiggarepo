@@ -110,8 +110,11 @@ window.loadCart = async function() {
         const data = await response.json();
         console.log('📦 Carrito cargado:', data);
 
+        // aaa CORRECCIÓN: el backend retorna data.carrito, no data.items -bynd
+        const carrito = data.carrito || [];
+
         // aaa si el carrito está vacío -bynd
-        if (!data.carrito || data.carrito.length === 0) {
+        if (!carrito || carrito.length === 0) {
             cartBody.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
             if (cartFooter) cartFooter.style.display = 'none';
             if (cartCountBubble) {
@@ -126,7 +129,7 @@ window.loadCart = async function() {
         let total = 0;
         let itemCount = 0;
 
-        data.carrito.forEach(item => {
+        carrito.forEach(item => {
             const nombre = item.nombre || 'Producto';
             const imagen = item.imagen_url || 'https://placehold.co/60x60/0056b3/FFFFFF/png?text=Producto';
             const cantidad = item.cantidad || 1;
@@ -350,14 +353,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCheckout.innerHTML = '<span>Procesando...</span>';
 
             try {
-                const response = await fetch('/api/cliente/pedidos', {
+                const response = await fetch('/api/cliente/pedido', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        direccion_envio: direccion,
-                        metodo_pago: metodoPago
+                        direccionEnvio: direccion,
+                        metodoPago: metodoPago
                     })
                 });
 
